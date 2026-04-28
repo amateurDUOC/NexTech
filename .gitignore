@@ -15,9 +15,10 @@ wp-*.php
 /wp-content/backup-*
 /wp-content/plugins/*
 /wp-content/themes/*
-!wp-content/plugins/pc-gamer-configurator/
 !wp-content/plugins/.gitkeep
+!wp-content/plugins/pc-gamer-configurator/
 !wp-content/themes/.gitkeep
+!wp-content/themes/wordpressstester
 
 # Vendor folders (dependencies - too long paths and should not be versioned)
 /wp-content/plugins/*/vendor/
