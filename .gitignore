@@ -1,0 +1,39 @@
+# Sensitive files - DO NOT COMMIT
+.env
+.env.local
+wp-config.php
+
+# WordPress core (optional - to exclude from version control)
+/wp-admin/
+/wp-includes/
+wp-*.php
+/index.php
+
+# WordPress directories
+/wp-content/uploads/
+/wp-content/cache/
+/wp-content/backup-*
+/wp-content/plugins/*
+/wp-content/themes/*
+!wp-content/plugins/.gitkeep
+!wp-content/themes/.gitkeep
+
+# Vendor folders (dependencies - too long paths and should not be versioned)
+/wp-content/plugins/*/vendor/
+/wp-content/themes/*/vendor/
+vendor/
+
+# Logs & Cache
+*.log
+debug.log
+.wp-cache
+.htaccess
+
+# Backups
+*.sql
+*.sql.gz
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
