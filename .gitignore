@@ -15,7 +15,7 @@ wp-*.php
 /wp-content/backup-*
 /wp-content/plugins/*
 /wp-content/themes/*
-!wp-content/pc-gamer-configurator/
+!wp-content/plugins/pc-gamer-configurator/
 !wp-content/plugins/.gitkeep
 !wp-content/themes/.gitkeep
 
