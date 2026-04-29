@@ -1,0 +1,360 @@
+/* =============================================================================
+   Nextech Product Filter — estilo inspirado en solotodo.cl
+   ============================================================================= */
+
+/* ── Reset base del sidebar ─────────────────────────────────────────────────── */
+.nextech-filter-sidebar {
+    font-size: 14px;
+    color: #1a1a1a;
+}
+
+/* ── Chips de filtros activos ───────────────────────────────────────────────── */
+.nxf-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+.nxf-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #0a58ca;
+    background: #e8f0fe;
+    border: 1px solid #b6ccfe;
+    border-radius: 20px;
+    cursor: pointer;
+    line-height: 1.4;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.nxf-chip:hover {
+    background: #d0e2ff;
+    border-color: #84aaff;
+}
+
+.nxf-chip-x {
+    font-size: 14px;
+    line-height: 1;
+    margin-left: 2px;
+    opacity: 0.6;
+}
+
+/* ── Acordeón ───────────────────────────────────────────────────────────────── */
+.nxf-accordion {
+    border-bottom: 1px solid #e2e2e2;
+    margin-bottom: 0;
+}
+
+.nxf-accordion:last-of-type {
+    border-bottom: none;
+}
+
+.nxf-accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 13px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #111;
+    text-align: left;
+    transition: color 0.15s;
+}
+
+.nxf-accordion-header:hover {
+    color: #0070f3;
+}
+
+/* Chevron animado */
+.nxf-chevron {
+    width: 10px;
+    height: 6px;
+    fill: #888;
+    flex-shrink: 0;
+    transition: transform 0.22s ease;
+}
+
+.nxf-accordion[data-open="false"] .nxf-chevron {
+    transform: rotate( -90deg );
+}
+
+/* Cuerpo del acordeón */
+.nxf-accordion-body {
+    overflow: hidden;
+    padding-bottom: 14px;
+    display: block;
+}
+
+.nxf-accordion[data-open="false"] .nxf-accordion-body {
+    display: none;
+}
+
+/* ── Buscador dentro de listas largas ───────────────────────────────────────── */
+.nxf-search-input {
+    width: 100%;
+    padding: 7px 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    border: 1px solid #d6d6d6;
+    border-radius: 4px;
+    color: #333;
+    background: #fafafa;
+    box-sizing: border-box;
+}
+
+.nxf-search-input:focus {
+    outline: none;
+    border-color: #0070f3;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(0,112,243,.12);
+}
+
+/* ── Precio ─────────────────────────────────────────────────────────────────── */
+.nxf-price-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nxf-price-input {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 9px;
+    font-size: 13px;
+    border: 1px solid #d6d6d6;
+    border-radius: 4px;
+    color: #333;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.nxf-price-input:focus {
+    outline: none;
+    border-color: #0070f3;
+    box-shadow: 0 0 0 2px rgba(0,112,243,.12);
+}
+
+/* Ocultar controles de flecha numérica */
+.nxf-price-input::-webkit-outer-spin-button,
+.nxf-price-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.nxf-price-input[type=number] { -moz-appearance: textfield; }
+
+.nxf-price-sep {
+    color: #bbb;
+    flex-shrink: 0;
+}
+
+/* ── Listas de términos ─────────────────────────────────────────────────────── */
+.nxf-term-list {
+    max-height: 220px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #d0d0d0 transparent;
+}
+
+.nxf-term-list::-webkit-scrollbar       { width: 4px; }
+.nxf-term-list::-webkit-scrollbar-track { background: transparent; }
+.nxf-term-list::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; }
+
+.nxf-term {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 4px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    border-radius: 4px;
+    transition: color 0.12s, background 0.12s;
+    line-height: 1.35;
+}
+
+.nxf-term:hover {
+    color: #0070f3;
+    background: #f0f6ff;
+}
+
+.nxf-term input[type=checkbox] {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: #0070f3;
+    margin: 0;
+}
+
+.nxf-term-name  { flex: 1; }
+
+.nxf-term-count {
+    font-size: 11px;
+    color: #b0b0b0;
+    min-width: 22px;
+    text-align: right;
+}
+
+/* Hijos de categoría con sangría */
+.nxf-term-children { padding-left: 20px; }
+
+.nxf-term--child {
+    font-size: 12.5px;
+    color: #555;
+}
+
+/* ── Botón limpiar filtros ──────────────────────────────────────────────────── */
+.nxf-reset-btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #c0392b;
+    background: #fff;
+    border: 1px solid #e8b4b0;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.3px;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.nxf-reset-btn:hover {
+    background: #fdf0ef;
+    border-color: #c0392b;
+}
+
+/* ── Estado cargando del grid ───────────────────────────────────────────────── */
+.nxf-grid-loading {
+    opacity: 0.4;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+/* ── Paginación ─────────────────────────────────────────────────────────────── */
+.nxf-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin: 36px 0 20px;
+    width: 100%;
+}
+
+.nxf-page-btn {
+    padding: 7px 13px;
+    font-size: 13px;
+    color: #333;
+    background: #fff;
+    border: 1px solid #d6d6d6;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.nxf-page-btn:hover:not( .is-active ) {
+    border-color: #0070f3;
+    color: #0070f3;
+}
+
+.nxf-page-btn.is-active {
+    background: #0070f3;
+    border-color: #0070f3;
+    color: #fff;
+    font-weight: 600;
+    cursor: default;
+}
+
+.nxf-page-nav { color: #555; }
+
+.nxf-page-ellipsis {
+    color: #bbb;
+    font-size: 13px;
+    padding: 0 3px;
+}
+
+/* ── Contador de resultados ─────────────────────────────────────────────────── */
+.nxf-result-count {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+/* ── Sin resultados / Error ─────────────────────────────────────────────────── */
+.nxf-no-results,
+.nxf-error {
+    display: block;
+    width: 100%;
+    padding: 48px 20px;
+    text-align: center;
+    font-size: 14px;
+    color: #999;
+}
+
+.nxf-error { color: #c0392b; }
+
+/* ── Grupos de atributos (acordeón anidado) ─────────────────────────────────── */
+
+/* El cuerpo del acordeón-padre no necesita padding inferior extra */
+.nxf-accordion-body--grupo {
+    padding-bottom: 4px;
+}
+
+/* Cada sub-acordeón hijo dentro del grupo */
+.nxf-attr-hijo {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.nxf-attr-hijo:last-of-type {
+    border-bottom: none;
+}
+
+/* Cabecera del sub-acordeón: más pequeña y menos llamativa que el padre */
+.nxf-accordion-header--sub {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #555;
+    padding: 9px 0 9px 10px;
+}
+
+.nxf-accordion-header--sub:hover {
+    color: #0070f3;
+}
+
+/* El chevron del sub-acordeón es ligeramente más pequeño */
+.nxf-attr-hijo .nxf-chevron {
+    width: 8px;
+    height: 5px;
+}
+
+/* Lista de términos dentro del sub-acordeón: indentada */
+.nxf-attr-hijo .nxf-accordion-body {
+    padding-left: 10px;
+    padding-bottom: 8px;
+}
+
+/* El sub-acordeón cerrado oculta su cuerpo correctamente */
+.nxf-attr-hijo[data-open="false"] .nxf-accordion-body {
+    display: none;
+}
+
+.nxf-attr-hijo[data-open="false"] .nxf-chevron {
+    transform: rotate( -90deg );
+}

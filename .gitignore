@@ -16,6 +16,7 @@ wp-*.php
 /wp-content/plugins/*
 /wp-content/themes/*
 !wp-content/plugins/.gitkeep
+!wp-content/plugins/nextech-product-filter/
 !wp-content/plugins/pc-gamer-configurator/
 !wp-content/themes/.gitkeep
 !wp-content/themes/wordpressstester
