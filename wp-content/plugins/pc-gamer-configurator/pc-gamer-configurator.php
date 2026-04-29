@@ -57,10 +57,12 @@ class PCGamerConfigurator {
         add_action('wp_ajax_pcgamer_category_sync_and_save',  [ $this, 'ajax_category_sync_and_save' ]);
         // AJAX: compatibilidad masiva
         add_action('wp_ajax_pcgamer_save_compatibility_bulk', [ $this, 'ajax_save_compatibility_bulk' ]);
-        // Eliminar pestaña "Información Adicional" en productos del configurador
+        // Eliminar pestañas "Descripción" e "Información Adicional" en productos del configurador
         add_filter('woocommerce_product_tabs', [ $this, 'remove_additional_info_tab' ], 98);
-        // Eliminar tabla HTML de la descripción en productos del configurador
+        // Vaciar descripción (ya se muestra la info en el bloque dedicado)
         add_filter('the_content', [ $this, 'remove_description_table' ], 20);
+        // Mostrar información del producto (Windows, garantía, etc.) junto al SKU/Categorías
+        add_action('woocommerce_product_meta_end', [ $this, 'render_product_info_section' ]);
     }
 
     public function enqueue_styles() {
@@ -68,8 +70,8 @@ class PCGamerConfigurator {
         if ( ! is_product() ) return;
 
         $plugin_url = plugin_dir_url(__FILE__);
-        wp_enqueue_style('pcgamer-configurator-styles', $plugin_url . 'assets/style.css', [], '1.3.2');
-        wp_enqueue_script('pcgamer-checkbox-control',        $plugin_url . 'assets/checkbox-control.js',        [], '1.3',   true);
+        wp_enqueue_style('pcgamer-configurator-styles', $plugin_url . 'assets/style.css', [], '1.3.3');
+        wp_enqueue_script('pcgamer-checkbox-control',        $plugin_url . 'assets/checkbox-control.js',        [], '1.4',   true);
         wp_enqueue_script('pcgamer-carousel-dropdown',       $plugin_url . 'assets/carousel-dropdown.js',       [], '1.2',   true);
         wp_enqueue_script('pcgamer-mobile-carousel',         $plugin_url . 'assets/mobile-carousel.js',         [], '1.0.1', true);
         wp_enqueue_script('pcgamer-mobile-enhancements',     $plugin_url . 'assets/mobile-enhancements.js',     [], '1.1.1', true);
@@ -932,11 +934,12 @@ class PCGamerConfigurator {
         wp_send_json_success(['message' => "Se actualizaron {$saved} productos correctamente."]);
     }
 
-    // ── Eliminar pestaña "Información Adicional" en productos del configurador ──
+    // ── Eliminar pestañas "Descripción" e "Información Adicional" ────────────
 
     public function remove_additional_info_tab($tabs) {
         global $product;
         if ($product && get_post_meta($product->get_id(), '_pcgamer_enabled', true) === 'yes') {
+            unset($tabs['description']);
             unset($tabs['additional_information']);
         }
         return $tabs;
@@ -1447,7 +1450,15 @@ HTML;
             echo '</div>';
         }
 
-        // ── Información del producto ──────────────────────────────────────────
+        echo '</div>';
+    }
+
+    // ── Información del producto (SKU / Categorías) ───────────────────────────
+
+    public function render_product_info_section() {
+        global $product;
+        if (!$product || get_post_meta($product->get_id(), '_pcgamer_enabled', true) !== 'yes') return;
+
         echo '<div class="pcgamer-product-info">';
         echo '<ul class="pcgamer-info-list">';
         echo '<li><span class="pcgamer-info-icon">✅</span> Incluye <strong>Windows 11</strong> instalado y activado</li>';
@@ -1455,8 +1466,6 @@ HTML;
         echo '<li><span class="pcgamer-info-icon">❌</span> No incluye WiFi ni Bluetooth integrado</li>';
         echo '<li><span class="pcgamer-info-icon">ℹ️</span> Los componentes pueden variar según disponibilidad de stock</li>';
         echo '</ul>';
-        echo '</div>';
-
         echo '</div>';
     }
 

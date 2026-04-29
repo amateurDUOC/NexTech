@@ -78,17 +78,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     wrappers.forEach(wrapper => {
         const categorySlug = wrapper.dataset.category;
-        
+
+        // Si el paso está bloqueado (PHP lo marca con data-locked="true") no auto-seleccionar nada.
+        // compatibility-filters.js lo desbloqueará cuando corresponda.
+        const parentDropdown = wrapper.closest('.pcgamer-category-dropdown');
+        const isLocked = parentDropdown && parentDropdown.dataset.locked === 'true';
+
         // Process initial state for pre-selected checkboxes
         const isOptional = ['accesorios', 'monitores'].some(optional =>
             categorySlug.toLowerCase().includes(optional)
         );
-        
-        if (!isOptional) {
-            // For required categories, ensure only one checkbox is selected
+
+        if (!isOptional && !isLocked) {
+            // For required categories that are not locked, ensure only one checkbox is selected
             const checkboxes = wrapper.querySelectorAll('input[type="checkbox"]');
             let hasChecked = false;
-            
+
             checkboxes.forEach(box => {
                 if (box.checked) {
                     hasChecked = true;
@@ -96,14 +101,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     updateItemSelection(box);
                 }
             });
-            
+
             // If none are checked, check the first one
             if (!hasChecked && checkboxes.length > 0) {
                 checkboxes[0].checked = true;
                 updateItemSelection(checkboxes[0]);
             }
-        } else {
-            // For optional categories, still apply selected class to checked items
+        } else if (!isLocked) {
+            // For optional categories that are not locked, apply selected class to checked items
             const checkboxes = wrapper.querySelectorAll('input[type="checkbox"]');
             checkboxes.forEach(box => {
                 if (box.checked) {

@@ -640,12 +640,14 @@
 /* ── Información del producto ─────────────────────────────────────────────── */
 
 .pcgamer-product-info {
-    margin-top: 24px;
-    padding: 16px 20px;
+    margin-top: 16px;
+    padding: 14px 18px;
     background: #f0f7ff;
     border: 1px solid #cce0ff;
     border-left: 4px solid #1a73e8;
     border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .pcgamer-info-list {
