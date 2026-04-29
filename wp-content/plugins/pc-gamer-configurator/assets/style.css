@@ -11,7 +11,13 @@
     width: 100%;
     box-sizing: border-box;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
 
+/* CORRECCIÓN — 2026-04-23
+   ANTES: faltaba el brace de cierre } en línea 14, causando que el bloque
+   no cerrara y los ~50 selectores siguientes quedaran dentro de este bloque.
+   Resultado: ningún estilo después de esta regla se aplicaba correctamente.
+   REVERTIR: Eliminar el } de cierre. */
 .pcgamer-upgrades-wrapper h2 {
     color: #333;
     font-size: 24px;
@@ -201,8 +207,8 @@
 
 /* Selected item styles - Desktop version */
 .upgrade-item.selected {
-    border: 2px solid #4a90e2;
-    box-shadow: 0 5px 15px rgba(74, 144, 226, 0.2);
+    border: 2px solid #28a745;
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
 }
 
 /* Price styles */
@@ -270,9 +276,9 @@
 }
 
 .upgrade-item.selected .select-button {
-    background-color: #4a90e2;
+    background-color: #28a745;
     color: white;
-    border-color: #3a80d2;
+    border-color: #218838;
 }
 
 .upgrade-item:not(.selected) .select-button:hover {
@@ -527,42 +533,13 @@
     font-weight: bold;
     color: #e53935;
 }
-        display: block;
-    }
-      
-    /* Remove the empty blue circle that was still showing */
-    .upgrade-item.selected::after {
-        /* Remove this completely instead of just setting content to empty */
-        display: none !important; /* Use !important to override any other styles */
-        content: none; /* Ensure no content is displayed */
-    }
-    
-    /* Enhance selected item visibility on mobile */
-    .upgrade-item.selected::after {
-        content: '';
-        position: absolute;
-        top: -10px;
-        right: -10px;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid #4a90e2;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    
-    /* Fix for product name truncation on mobile */
-    .upgrade-item p {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 4;
-        -webkit-box-orient: vertical;
-        word-break: break-word;
-    }
 
+/* LIMPIEZA — 2026-04-23
+   Se eliminaron ~36 líneas de CSS huérfano que estaban fuera de cualquier
+   selector o @media query (líneas 536-570 originales). Eran fragmentos
+   residuales de un bloque @media mal cerrado. Las reglas válidas de
+   .upgrade-item.selected::after y .upgrade-item p fueron consolidadas
+   dentro del @media (max-width: 768px) al final del archivo. */
 
 /* Additional mobile optimizations for smaller screens */
 @media (max-width: 480px) {
@@ -604,97 +581,11 @@
 }
 
 
-/* Solo el precio del PC Base */
-#pcgamer-summary-table .base-product-row td:last-child .woocommerce-Price-amount {
-    font-size: 14px !important;
-    font-weight: 500 !important;
-}
-
-/* Resto de precios normales en azul y negrita */
-#pcgamer-summary-table td:last-child .woocommerce-Price-amount,
-#pcgamer-summary-table td:last-child .amount,
-#pcgamer-summary-table td:last-child bdi {
-    color: #4a90e2 !important;
-    font-weight: bold !important;
-    font-size: 16px !important; /* Asegura que los demás precios sigan grandes */
-}
-
-
-
-/* === Estilos personalizados para tabla de resumen === */
-
-#pcgamer-summary-table td:last-child {
-    color: #4a90e2;
-    font-weight: bold;
-}
-
-/* Nombres de categorías en negrita (columna 1) */
-#pcgamer-summary-table td:first-child {
-    font-weight: 600;
-}
-
-
-/* Estilo pro para la tabla de resumen */
-#pcgamer-summary-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 15px;
-    margin-top: 30px;
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-/* Encabezado */
-#pcgamer-summary-table thead {
-    background-color: #f7f9fc;
-    color: #333;
-    font-weight: 600;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-#pcgamer-summary-table th {
-    padding: 14px 20px;
-    text-align: left;
-    border-right: 1px solid #eaeaea;
-}
-
-#pcgamer-summary-table th:last-child {
-    text-align: center !important;
-    padding-left: 12px;  /* reduce margen interno izquierdo */
-}
-
-
-/* Celdas del cuerpo */
-#pcgamer-summary-table td {
-    padding: 12px 20px;
-    border-top: 1px solid #f0f0f0;
-    background-color: #fff;
-}
-
-#pcgamer-summary-table tr:nth-child(even) td {
-    background-color: #f9f9f9;
-}
-
-/* Fila base destacada */
-#pcgamer-summary-table .base-product-row td {
-    background-color: #f0f8ff;
-    font-weight: bold;
-}
-
-/* Fila total destacada */
-#pcgamer-summary-total {
-    padding-top: 10px;
-    text-align: right;
-    font-size: 15px;
-    font-weight: bold;
-    color: #e53935;
-}
-
+/* LIMPIEZA — 2026-04-23
+   Bloque #pcgamer-summary-table duplicado eliminado (era idéntico al bloque
+   que aparece más arriba en el archivo, líneas ~446-535). CSS duplicado
+   no causa errores visuales pero incrementa el tiempo de parsing del navegador
+   y dificulta el mantenimiento. */
 
 
 @media (max-width: 768px) {

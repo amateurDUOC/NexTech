@@ -59,6 +59,8 @@ class PCGamerConfigurator {
         add_action('wp_ajax_pcgamer_save_compatibility_bulk', [ $this, 'ajax_save_compatibility_bulk' ]);
         // Eliminar pestaña "Información Adicional" en productos del configurador
         add_filter('woocommerce_product_tabs', [ $this, 'remove_additional_info_tab' ], 98);
+        // Eliminar tabla HTML de la descripción en productos del configurador
+        add_filter('the_content', [ $this, 'remove_description_table' ], 20);
     }
 
     public function enqueue_styles() {
@@ -666,18 +668,16 @@ class PCGamerConfigurator {
 
                                 $has_data = false;
                                 foreach ($fields as $f) {
-                                    $val = match($f) {
-                                        'socket'           => $cur_socket,
-                                        'ram_type'         => $cur_ram,
-                                        'form_factor'      => $cur_ff,
-                                        'form_factors'     => !empty($cur_ffs),
-                                        'wattage'          => $cur_wattage,
-                                        'cooler_height'    => $cur_ch,
-                                        'cooler_clearance' => $cur_cc,
-                                        'radiator_size'    => ($cur_rad_size !== ''),
-                                        'radiator_support' => !empty($cur_rad_sup),
-                                        default            => '',
-                                    };
+                                    if ($f === 'socket')               $val = $cur_socket;
+                                    elseif ($f === 'ram_type')         $val = $cur_ram;
+                                    elseif ($f === 'form_factor')      $val = $cur_ff;
+                                    elseif ($f === 'form_factors')     $val = !empty($cur_ffs);
+                                    elseif ($f === 'wattage')          $val = $cur_wattage;
+                                    elseif ($f === 'cooler_height')    $val = $cur_ch;
+                                    elseif ($f === 'cooler_clearance') $val = $cur_cc;
+                                    elseif ($f === 'radiator_size')    $val = ($cur_rad_size !== '');
+                                    elseif ($f === 'radiator_support') $val = !empty($cur_rad_sup);
+                                    else                               $val = '';
                                     if ($val) { $has_data = true; break; }
                                 }
                                 ?>
@@ -940,6 +940,16 @@ class PCGamerConfigurator {
             unset($tabs['additional_information']);
         }
         return $tabs;
+    }
+
+    // ── Eliminar tabla HTML de la descripción del producto ────────────────────
+
+    public function remove_description_table($content) {
+        if (!is_singular('product')) return $content;
+        global $post;
+        if (!$post || get_post_meta($post->ID, '_pcgamer_enabled', true) !== 'yes') return $content;
+        // Elimina cualquier <table>...</table> del contenido, conservando el resto (bullets, párrafos, etc.)
+        return preg_replace('/<table[\s\S]*?<\/table>/i', '', $content);
     }
 
     /**
@@ -1331,9 +1341,9 @@ HTML;
         $custom_prices = get_post_meta($product->get_id(), '_pcgamer_custom_prices', true) ?: [];
 
         echo '<div class="pcgamer-upgrades-wrapper" data-compatibility-nonce="' . esc_attr(wp_create_nonce('pcgamer_compatibility')) . '">';
-        echo '<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;">';
+        echo '<div style="position:relative;text-align:center;margin-bottom:24px;">';
         echo '<h2 style="margin:0;">🛠️ Personaliza tu PC Gamer</h2>';
-        echo '<button type="button" id="pcgamer-reset-all" title="Borrar todas las selecciones y empezar de nuevo">↺ Borrar selección</button>';
+        echo '<button type="button" id="pcgamer-reset-all" title="Borrar todas las selecciones y empezar de nuevo" style="position:absolute;top:50%;right:0;transform:translateY(-50%);">↺ Borrar selección</button>';
         echo '</div>';
 
         // Contenedor para mensajes de validación de compatibilidad
