@@ -1,16 +1,23 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Enhanced mobile detection
-    const isMobile = window.innerWidth <= 768 || 
-                     navigator.userAgent.match(/Android/i) || 
+    const isMobile = window.innerWidth <= 768 ||
+                     navigator.userAgent.match(/Android/i) ||
                      navigator.userAgent.match(/iPhone|iPad|iPod/i);
-    
+
+    // Exponer initializeCarousel globalmente para que compatibility-filters.js
+    // pueda inicializar el carrusel al desbloquear un paso
+    window.pcgamerInitCarousel = initializeCarousel;
+
     // Dropdown functionality
     const dropdowns = document.querySelectorAll('.pcgamer-dropdown-header');
-    
+
     dropdowns.forEach(dropdown => {
         dropdown.addEventListener('click', function() {
             const parent = this.parentElement;
-            
+
+            // No abrir si el paso está bloqueado (compatibility-filters.js maneja el mensaje)
+            if (parent.dataset.locked === 'true') return;
+
             // Close all other dropdowns first
             document.querySelectorAll('.pcgamer-category-dropdown').forEach(item => {
                 if (item !== parent) {

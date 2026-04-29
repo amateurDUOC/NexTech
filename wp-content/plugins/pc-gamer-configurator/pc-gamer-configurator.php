@@ -14,22 +14,35 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-onepercategory.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-pricetotal.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-customprice.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-pricerestore.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-compatibility-manager.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-compatibility-metabox.php';
 
 class PCGamerConfigurator {
 
+    /** @var CompatibilityManager */
+    private $compatibility_manager;
+
+    /** @var CompatibilityMetabox */
+    private $compatibility_metabox;
+
+    // Orden correcto: CPU → Placa → RAM → Almacenamiento → Fuente → Gabinete → Refrigeración → extras
     private $plugin_categories = [
-        'Gabinetes PC Armado' => 'Selección de gabinete',
-        'refrigeracion' => 'Selección de refrigeración de procesador',
-        'Memoria RAM PC Armado' => 'Selección de memoria RAM',
-        'Almacenamiento PC Armado' => 'Selección de disco duro',
+        'Procesadores PC Armado'    => 'Selección de procesador',
+        'Placas PC Armado'          => 'Selección de placa madre',
+        'Memoria RAM PC Armado'     => 'Selección de memoria RAM',
+        'Almacenamiento PC Armado'  => 'Selección de almacenamiento',
         'Fuente de Poder PC Armado' => 'Selección de fuente de poder',
-        'Placas PC Armado' => 'Selección de placa madre',
-        'Procesadores PC Armado' => 'Selección de procesador',
-        'Accesorios PC Armado' => 'Agregar Accesorios',
-        'Monitores' => 'Agregar monitor'
+        'Gabinetes PC Armado'       => 'Selección de gabinete',
+        'refrigeracion'             => 'Selección de refrigeración de procesador',
+        'Accesorios PC Armado'      => 'Agregar Accesorios',
+        'Monitores'                 => 'Agregar monitor',
     ];
 
     public function __construct() {
+        // Instanciar módulos de compatibilidad
+        $this->compatibility_manager = new CompatibilityManager();
+        $this->compatibility_metabox = new CompatibilityMetabox();
+
         add_action('admin_menu', [ $this, 'admin_menu' ]);
         add_action('add_meta_boxes', [ $this, 'register_metabox' ]);
         add_action('save_post', [ $this, 'save_product_upgrades' ]);
@@ -38,19 +51,61 @@ class PCGamerConfigurator {
         add_action('woocommerce_add_to_cart', [ $this, 'add_extras_once_main_added' ], 20, 6);
         add_filter('woocommerce_product_supports', [ $this, 'force_disable_ajax' ], 10, 3);
         add_action('wp_enqueue_scripts', [ $this, 'enqueue_styles' ]);
-        
-        // Add AJAX handler for syncing prices
-        add_action('wp_ajax_pcgamer_sync_category_prices', [ $this, 'ajax_sync_category_prices' ]);
-        add_action('wp_ajax_pcgamer_category_sync_and_save', [ $this, 'ajax_category_sync_and_save' ]);
+
+        // AJAX: precios
+        add_action('wp_ajax_pcgamer_sync_category_prices',    [ $this, 'ajax_sync_category_prices' ]);
+        add_action('wp_ajax_pcgamer_category_sync_and_save',  [ $this, 'ajax_category_sync_and_save' ]);
+        // AJAX: compatibilidad masiva
+        add_action('wp_ajax_pcgamer_save_compatibility_bulk', [ $this, 'ajax_save_compatibility_bulk' ]);
+        // Eliminar pestaña "Información Adicional" en productos del configurador
+        add_filter('woocommerce_product_tabs', [ $this, 'remove_additional_info_tab' ], 98);
     }
 
     public function enqueue_styles() {
+        // Solo cargar en páginas de producto individual
+        if ( ! is_product() ) return;
+
         $plugin_url = plugin_dir_url(__FILE__);
         wp_enqueue_style('pcgamer-configurator-styles', $plugin_url . 'assets/style.css', [], '1.3.1');
-        wp_enqueue_script('pcgamer-checkbox-control', $plugin_url . 'assets/checkbox-control.js', [], '1.2', true);
-        wp_enqueue_script('pcgamer-carousel-dropdown', $plugin_url . 'assets/carousel-dropdown.js', [], '1.2', true);
-        wp_enqueue_script('pcgamer-mobile-carousel', $plugin_url . 'assets/mobile-carousel.js', [], '1.0.1', true);
-        wp_enqueue_script('pcgamer-mobile-enhancements', $plugin_url . 'assets/mobile-enhancements.js', ['jquery'], '1.1.1', true);
+        wp_enqueue_script('pcgamer-checkbox-control',        $plugin_url . 'assets/checkbox-control.js',        [], '1.2',   true);
+        wp_enqueue_script('pcgamer-carousel-dropdown',       $plugin_url . 'assets/carousel-dropdown.js',       [], '1.2',   true);
+        wp_enqueue_script('pcgamer-mobile-carousel',         $plugin_url . 'assets/mobile-carousel.js',         [], '1.0.1', true);
+        wp_enqueue_script('pcgamer-mobile-enhancements',     $plugin_url . 'assets/mobile-enhancements.js',     [], '1.1.1', true);
+        wp_enqueue_script('pcgamer-compatibility-filters',   $plugin_url . 'assets/compatibility-filters.js',   [], '0.9.0', true);
+
+        wp_localize_script('pcgamer-compatibility-filters', 'pcgamerAjax', [
+            'nonce'   => wp_create_nonce('pcgamer_compatibility'),
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+        ]);
+
+        // CSS para pasos bloqueados y botón borrar selección
+        wp_add_inline_style('pcgamer-configurator-styles', '
+            .pcgamer-step-locked .pcgamer-dropdown-header {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
+            .pcgamer-step-locked .pcgamer-dropdown-content {
+                display: none !important;
+            }
+            .pcgamer-step-locked .pcgamer-dropdown-header h3 {
+                color: #888;
+            }
+            #pcgamer-reset-all {
+                background: none;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                padding: 4px 12px;
+                font-size: 13px;
+                color: #666;
+                cursor: pointer;
+                white-space: nowrap;
+            }
+            #pcgamer-reset-all:hover {
+                background: #f5f5f5;
+                border-color: #999;
+                color: #333;
+            }
+        ');
     }
 
     public function admin_menu() {
@@ -80,8 +135,26 @@ class PCGamerConfigurator {
             exit;
         }
 
+        $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'precios';
         ?>
         <div class="pcgamer-admin-container">
+
+            <!-- Navegación de pestañas -->
+            <nav class="nav-tab-wrapper" style="margin-bottom:20px;">
+                <a href="<?php echo esc_url(admin_url('admin.php?page=pcgamer-config&tab=precios')); ?>"
+                   class="nav-tab <?php echo $active_tab === 'precios' ? 'nav-tab-active' : ''; ?>">
+                    💰 Precios por Categoría
+                </a>
+                <a href="<?php echo esc_url(admin_url('admin.php?page=pcgamer-config&tab=compatibilidad')); ?>"
+                   class="nav-tab <?php echo $active_tab === 'compatibilidad' ? 'nav-tab-active' : ''; ?>">
+                    🔧 Compatibilidad de Componentes
+                </a>
+            </nav>
+
+            <?php if ($active_tab === 'compatibilidad'): ?>
+                <?php $this->render_compatibility_tab(); ?>
+            <?php else: ?>
+
             <form method="post" action="" style="margin-bottom:20px;">
                 <?php wp_nonce_field('pcgamer_config_settings', 'pcgamer_nonce'); ?>
                 <button type="submit" name="pcgamer_clear_custom_prices" class="button" style="background:#e53935;color:#fff;border:none;padding:8px 18px;font-weight:600;">
@@ -482,10 +555,393 @@ class PCGamerConfigurator {
                     });
                 });
             </script>
-        </div>
+            <?php endif; // fin else (tab precios) ?>
+
+        </div><!-- cierre .pcgamer-admin-container -->
         <?php
     }
-    
+
+    // ── TAB COMPATIBILIDAD ────────────────────────────────────────────────────
+
+    private function render_compatibility_tab() {
+        $nonce = wp_create_nonce('pcgamer_compatibility_bulk');
+
+        $categories_config = [
+            'Procesadores PC Armado'    => ['label' => 'Procesadores',    'fields' => ['socket', 'ram_type']],
+            'Placas PC Armado'          => ['label' => 'Placas Madre',     'fields' => ['socket', 'form_factor']],
+            'Memoria RAM PC Armado'     => ['label' => 'Memoria RAM',      'fields' => ['ram_type']],
+            'Fuente de Poder PC Armado' => ['label' => 'Fuentes de Poder', 'fields' => ['wattage']],
+            'Gabinetes PC Armado'       => ['label' => 'Gabinetes',        'fields' => ['form_factors', 'cooler_clearance', 'radiator_support']],
+            'refrigeracion'             => ['label' => 'Refrigeración',    'fields' => ['socket', 'cooler_height', 'radiator_size']],
+        ];
+
+        $field_labels = [
+            'socket'           => 'Socket',
+            'ram_type'         => 'Tipo RAM',
+            'form_factor'      => 'Form Factor',
+            'form_factors'     => 'Form Factors soportados',
+            'wattage'          => 'Wattaje (W)',
+            'cooler_height'    => 'Altura Cooler (mm)',
+            'cooler_clearance' => 'Espacio para Cooler (mm)',
+            'radiator_size'    => 'Tamaño Radiador (mm)',
+            'radiator_support' => 'Radiadores soportados',
+        ];
+
+        $ram_options  = ['DDR4', 'DDR5'];
+        $ff_options   = ['ATX', 'Micro-ATX', 'Mini-ITX'];
+        $rad_options  = ['120', '240', '360'];
+        ?>
+        <div class="pcgamer-admin-card">
+            <h1 style="margin-top:0;">🔧 Compatibilidad de Componentes</h1>
+            <p style="color:#555;max-width:700px;">
+                Llena las especificaciones técnicas de todos tus componentes desde aquí.
+                Solo se muestran los campos relevantes para cada tipo de categoría.
+                Al hacer click en <strong>Guardar todo</strong> se actualiza cada producto de una sola vez.
+            </p>
+
+            <div id="pcgamer-compat-notice" style="display:none;padding:10px 16px;border-radius:4px;margin-bottom:16px;font-weight:600;"></div>
+
+            <?php foreach ($categories_config as $slug => $config):
+                $fields = $config['fields'];
+
+                $synced = get_option('pcgamer_synced_products_per_category', []);
+                if (!empty($synced[$slug])) {
+                    $product_ids = $synced[$slug];
+                    $products    = array_filter(array_map('wc_get_product', $product_ids));
+                } else {
+                    $term = get_term_by('name', $slug, 'product_cat');
+                    if (!$term) $term = get_term_by('slug', sanitize_title($slug), 'product_cat');
+                    $products = [];
+                    if ($term && !is_wp_error($term)) {
+                        $posts = get_posts([
+                            'post_type'      => 'product',
+                            'posts_per_page' => -1,
+                            'post_status'    => 'publish',
+                            'tax_query'      => [[
+                                'taxonomy' => 'product_cat',
+                                'field'    => 'term_id',
+                                'terms'    => $term->term_id,
+                            ]],
+                        ]);
+                        foreach ($posts as $p) {
+                            $wcp = wc_get_product($p->ID);
+                            if ($wcp) $products[$p->ID] = $wcp;
+                        }
+                    }
+                }
+
+                if (empty($products)) continue;
+                ?>
+                <div style="margin-bottom:36px;">
+                    <h2 style="border-bottom:2px solid #1a73e8;padding-bottom:6px;color:#1a73e8;">
+                        <?php echo esc_html($config['label']); ?>
+                        <span style="font-size:13px;font-weight:400;color:#888;margin-left:8px;">(<?php echo count($products); ?> productos)</span>
+                    </h2>
+
+                    <div style="overflow-x:auto;">
+                    <table class="wp-list-table widefat striped" style="min-width:600px;">
+                        <thead>
+                            <tr>
+                                <th style="min-width:220px;">Producto</th>
+                                <?php foreach ($fields as $f): ?>
+                                    <th style="min-width:<?php echo $f === 'form_factors' || $f === 'radiator_support' ? '200px' : '140px'; ?>;">
+                                        <?php echo esc_html($field_labels[$f]); ?>
+                                    </th>
+                                <?php endforeach; ?>
+                                <th style="width:80px;text-align:center;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($products as $product):
+                                $pid          = $product->get_id();
+                                $cur_socket   = get_post_meta($pid, '_pcgamer_socket',           true);
+                                $cur_ram      = get_post_meta($pid, '_pcgamer_ram_type',         true);
+                                $cur_ff       = get_post_meta($pid, '_pcgamer_form_factor',      true);
+                                $cur_ffs      = get_post_meta($pid, '_pcgamer_form_factors',     true) ?: [];
+                                $cur_wattage  = get_post_meta($pid, '_pcgamer_wattage',          true);
+                                $cur_ch       = get_post_meta($pid, '_pcgamer_cooler_height',    true);
+                                $cur_cc       = get_post_meta($pid, '_pcgamer_cooler_clearance', true);
+                                $cur_rad_size = get_post_meta($pid, '_pcgamer_radiator_size',    true);
+                                $cur_rad_sup  = get_post_meta($pid, '_pcgamer_radiator_support', true) ?: [];
+
+                                $has_data = false;
+                                foreach ($fields as $f) {
+                                    $val = match($f) {
+                                        'socket'           => $cur_socket,
+                                        'ram_type'         => $cur_ram,
+                                        'form_factor'      => $cur_ff,
+                                        'form_factors'     => !empty($cur_ffs),
+                                        'wattage'          => $cur_wattage,
+                                        'cooler_height'    => $cur_ch,
+                                        'cooler_clearance' => $cur_cc,
+                                        'radiator_size'    => ($cur_rad_size !== ''),
+                                        'radiator_support' => !empty($cur_rad_sup),
+                                        default            => '',
+                                    };
+                                    if ($val) { $has_data = true; break; }
+                                }
+                                ?>
+                                <tr data-product-id="<?php echo $pid; ?>">
+                                    <td>
+                                        <strong><?php echo esc_html($product->get_name()); ?></strong>
+                                        <br><span style="color:#999;font-size:11px;">ID: <?php echo $pid; ?></span>
+                                    </td>
+
+                                    <?php foreach ($fields as $f): ?>
+                                    <td>
+                                        <?php if ($f === 'socket'): ?>
+                                            <input type="text" class="pcgamer-compat-field" data-field="socket"
+                                                value="<?php echo esc_attr($cur_socket); ?>" placeholder="AM4, LGA1700…"
+                                                style="width:100%;max-width:130px;padding:5px 7px;" />
+
+                                        <?php elseif ($f === 'ram_type'): ?>
+                                            <select class="pcgamer-compat-field" data-field="ram_type" style="width:100%;max-width:130px;padding:5px 7px;">
+                                                <option value="">— Sin especificar —</option>
+                                                <?php foreach ($ram_options as $ro): ?>
+                                                    <option value="<?php echo $ro; ?>" <?php selected($cur_ram, $ro); ?>><?php echo $ro; ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+
+                                        <?php elseif ($f === 'form_factor'): ?>
+                                            <select class="pcgamer-compat-field" data-field="form_factor" style="width:100%;max-width:130px;padding:5px 7px;">
+                                                <option value="">— Sin especificar —</option>
+                                                <?php foreach ($ff_options as $ffo): ?>
+                                                    <option value="<?php echo $ffo; ?>" <?php selected($cur_ff, $ffo); ?>><?php echo $ffo; ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+
+                                        <?php elseif ($f === 'form_factors'): ?>
+                                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                                <?php foreach ($ff_options as $ffo): ?>
+                                                    <label style="white-space:nowrap;font-weight:normal;">
+                                                        <input type="checkbox" class="pcgamer-compat-ff" value="<?php echo esc_attr($ffo); ?>"
+                                                            <?php checked(in_array($ffo, (array)$cur_ffs)); ?> />
+                                                        <?php echo esc_html($ffo); ?>
+                                                    </label>
+                                                <?php endforeach; ?>
+                                            </div>
+
+                                        <?php elseif ($f === 'wattage'): ?>
+                                            <input type="number" class="pcgamer-compat-field" data-field="wattage"
+                                                value="<?php echo esc_attr($cur_wattage); ?>" placeholder="650"
+                                                min="0" step="50" style="width:90px;padding:5px 7px;" />
+
+                                        <?php elseif ($f === 'cooler_height'): ?>
+                                            <input type="number" class="pcgamer-compat-field" data-field="cooler_height"
+                                                value="<?php echo esc_attr($cur_ch); ?>" placeholder="165"
+                                                min="0" style="width:90px;padding:5px 7px;" />
+
+                                        <?php elseif ($f === 'cooler_clearance'): ?>
+                                            <input type="number" class="pcgamer-compat-field" data-field="cooler_clearance"
+                                                value="<?php echo esc_attr($cur_cc); ?>" placeholder="170"
+                                                min="0" style="width:90px;padding:5px 7px;" />
+
+                                        <?php elseif ($f === 'radiator_size'): ?>
+                                            <select class="pcgamer-compat-field" data-field="radiator_size" style="width:100%;max-width:130px;padding:5px 7px;">
+                                                <option value="" <?php selected($cur_rad_size, ''); ?>>— Aire / Sin radiador —</option>
+                                                <?php foreach ($rad_options as $ro): ?>
+                                                    <option value="<?php echo $ro; ?>" <?php selected($cur_rad_size, $ro); ?>><?php echo $ro; ?> mm</option>
+                                                <?php endforeach; ?>
+                                            </select>
+
+                                        <?php elseif ($f === 'radiator_support'): ?>
+                                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                                <?php foreach ($rad_options as $ro): ?>
+                                                    <label style="white-space:nowrap;font-weight:normal;">
+                                                        <input type="checkbox" class="pcgamer-compat-rad" value="<?php echo esc_attr($ro); ?>"
+                                                            <?php checked(in_array($ro, (array)$cur_rad_sup)); ?> />
+                                                        <?php echo esc_html($ro); ?>mm
+                                                    </label>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <?php endforeach; ?>
+
+                                    <td style="text-align:center;">
+                                        <span class="pcgamer-row-status" title="<?php echo $has_data ? 'Datos cargados' : 'Sin datos'; ?>">
+                                            <?php echo $has_data ? '✅' : '⬜'; ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+
+            <div style="position:sticky;bottom:0;background:#fff;border-top:2px solid #1a73e8;padding:14px 0;margin-top:10px;z-index:10;">
+                <button id="pcgamer-save-compat-btn" class="button button-primary" style="font-size:15px;padding:8px 28px;font-weight:700;">
+                    💾 Guardar todo
+                </button>
+                <span id="pcgamer-save-spinner" class="spinner" style="float:none;vertical-align:middle;margin-left:8px;"></span>
+                <span id="pcgamer-save-result" style="margin-left:10px;font-weight:600;"></span>
+            </div>
+        </div>
+
+        <script>
+        jQuery(document).ready(function($) {
+            $('#pcgamer-save-compat-btn').on('click', function() {
+                var btn     = $(this);
+                var spinner = $('#pcgamer-save-spinner');
+                var result  = $('#pcgamer-save-result');
+                var notice  = $('#pcgamer-compat-notice');
+
+                btn.prop('disabled', true);
+                spinner.css('visibility', 'visible');
+                result.text('Guardando...');
+                notice.hide();
+
+                var items = [];
+                $('tr[data-product-id]').each(function() {
+                    var row  = $(this);
+                    var pid  = row.data('product-id');
+                    var data = { id: pid };
+
+                    row.find('.pcgamer-compat-field').each(function() {
+                        data[$(this).data('field')] = $(this).val();
+                    });
+
+                    // Form factors
+                    var ffs = [];
+                    row.find('.pcgamer-compat-ff:checked').each(function() { ffs.push($(this).val()); });
+                    if (row.find('.pcgamer-compat-ff').length) data['form_factors'] = ffs;
+
+                    // Radiator support
+                    var rads = [];
+                    row.find('.pcgamer-compat-rad:checked').each(function() { rads.push($(this).val()); });
+                    if (row.find('.pcgamer-compat-rad').length) data['radiator_support'] = rads;
+
+                    items.push(data);
+                });
+
+                $.ajax({
+                    url: ajaxurl,
+                    method: 'POST',
+                    data: {
+                        action: 'pcgamer_save_compatibility_bulk',
+                        nonce:  '<?php echo esc_js($nonce); ?>',
+                        items:  JSON.stringify(items)
+                    },
+                    success: function(response) {
+                        spinner.css('visibility', 'hidden');
+                        btn.prop('disabled', false);
+                        if (response.success) {
+                            result.css('color', 'green').text('✓ ' + response.data.message);
+                            notice.css({ background: '#d4edda', color: '#155724', display: 'block' }).text('✓ ' + response.data.message);
+                            $('tr[data-product-id] .pcgamer-row-status').text('✅').attr('title', 'Datos cargados');
+                        } else {
+                            result.css('color', 'red').text('Error: ' + response.data.message);
+                            notice.css({ background: '#f8d7da', color: '#721c24', display: 'block' }).text('Error: ' + response.data.message);
+                        }
+                        $('html,body').animate({ scrollTop: 0 }, 400);
+                    },
+                    error: function() {
+                        spinner.css('visibility', 'hidden');
+                        btn.prop('disabled', false);
+                        result.css('color', 'red').text('Error de conexión');
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
+    }
+
+    // ── AJAX: Guardar compatibilidad masiva ───────────────────────────────────
+
+    public function ajax_save_compatibility_bulk() {
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'pcgamer_compatibility_bulk')) {
+            wp_send_json_error(['message' => 'Verificación de seguridad fallida']);
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Sin permisos']);
+        }
+
+        $items = json_decode(stripslashes($_POST['items'] ?? ''), true);
+        if (!is_array($items)) {
+            wp_send_json_error(['message' => 'Datos inválidos']);
+        }
+
+        $allowed_ff  = ['ATX', 'Micro-ATX', 'Mini-ITX'];
+        $allowed_ram = ['DDR4', 'DDR5'];
+        $saved       = 0;
+
+        foreach ($items as $item) {
+            $pid = intval($item['id'] ?? 0);
+            if (!$pid || get_post_type($pid) !== 'product') continue;
+
+            if (isset($item['socket'])) {
+                $val = sanitize_text_field($item['socket']);
+                $val ? update_post_meta($pid, '_pcgamer_socket', $val) : delete_post_meta($pid, '_pcgamer_socket');
+            }
+            if (isset($item['ram_type'])) {
+                $val = sanitize_text_field($item['ram_type']);
+                ($val && in_array($val, $allowed_ram))
+                    ? update_post_meta($pid, '_pcgamer_ram_type', $val)
+                    : delete_post_meta($pid, '_pcgamer_ram_type');
+            }
+            if (isset($item['form_factor'])) {
+                $val = sanitize_text_field($item['form_factor']);
+                ($val && in_array($val, $allowed_ff))
+                    ? update_post_meta($pid, '_pcgamer_form_factor', $val)
+                    : delete_post_meta($pid, '_pcgamer_form_factor');
+            }
+            if (isset($item['form_factors'])) {
+                $vals = array_values(array_filter(
+                    array_map('sanitize_text_field', (array) $item['form_factors']),
+                    fn($v) => in_array($v, $allowed_ff)
+                ));
+                $vals ? update_post_meta($pid, '_pcgamer_form_factors', $vals)
+                      : delete_post_meta($pid, '_pcgamer_form_factors');
+            }
+            if (isset($item['wattage'])) {
+                $val = intval($item['wattage']);
+                $val > 0 ? update_post_meta($pid, '_pcgamer_wattage', $val)
+                         : delete_post_meta($pid, '_pcgamer_wattage');
+            }
+            if (isset($item['cooler_height'])) {
+                $val = intval($item['cooler_height']);
+                $val > 0 ? update_post_meta($pid, '_pcgamer_cooler_height', $val)
+                         : delete_post_meta($pid, '_pcgamer_cooler_height');
+            }
+            if (isset($item['cooler_clearance'])) {
+                $val = intval($item['cooler_clearance']);
+                $val > 0 ? update_post_meta($pid, '_pcgamer_cooler_clearance', $val)
+                         : delete_post_meta($pid, '_pcgamer_cooler_clearance');
+            }
+            if (array_key_exists('radiator_size', $item)) {
+                $val = sanitize_text_field($item['radiator_size']);
+                ($val !== '' && in_array($val, ['120', '240', '360'], true))
+                    ? update_post_meta($pid, '_pcgamer_radiator_size', $val)
+                    : delete_post_meta($pid, '_pcgamer_radiator_size');
+            }
+            if (isset($item['radiator_support'])) {
+                $vals = array_values(array_filter(
+                    array_map('sanitize_text_field', (array) $item['radiator_support']),
+                    fn($v) => in_array($v, ['120', '240', '360'], true)
+                ));
+                $vals ? update_post_meta($pid, '_pcgamer_radiator_support', $vals)
+                      : delete_post_meta($pid, '_pcgamer_radiator_support');
+            }
+
+            $saved++;
+        }
+
+        wp_send_json_success(['message' => "Se actualizaron {$saved} productos correctamente."]);
+    }
+
+    // ── Eliminar pestaña "Información Adicional" en productos del configurador ──
+
+    public function remove_additional_info_tab($tabs) {
+        global $product;
+        if ($product && get_post_meta($product->get_id(), '_pcgamer_enabled', true) === 'yes') {
+            unset($tabs['additional_information']);
+        }
+        return $tabs;
+    }
+
     /**
      * AJAX handler for syncing category prices with WooCommerce
      */
@@ -874,42 +1330,67 @@ HTML;
         
         $custom_prices = get_post_meta($product->get_id(), '_pcgamer_custom_prices', true) ?: [];
 
-        echo '<div class="pcgamer-upgrades-wrapper">';
-        echo '<h2 style="margin-bottom:20px; text-align: center;">🛠️ Personaliza tu PC Gamer</h2>';
+        echo '<div class="pcgamer-upgrades-wrapper" data-compatibility-nonce="' . esc_attr(wp_create_nonce('pcgamer_compatibility')) . '">';
+        echo '<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;">';
+        echo '<h2 style="margin:0;">🛠️ Personaliza tu PC Gamer</h2>';
+        echo '<button type="button" id="pcgamer-reset-all" title="Borrar todas las selecciones y empezar de nuevo">↺ Borrar selección</button>';
+        echo '</div>';
+
+        // Contenedor para mensajes de validación de compatibilidad
+        echo '<div class="pcgamer-validation-messages"></div>';
+
+        $required_steps = [
+            'Procesadores PC Armado',
+            'Placas PC Armado',
+            'Memoria RAM PC Armado',
+            'Almacenamiento PC Armado',
+            'Fuente de Poder PC Armado',
+            'Gabinetes PC Armado',
+            'refrigeracion',
+        ];
+        $step_counter = 0;
 
         foreach ($this->plugin_categories as $slug => $label) {
             if (empty($upgrades[$slug])) continue;
-            
+
             $sorted_products = [];
             foreach ($upgrades[$slug] as $upgrade_id) {
                 $upgrade_product = wc_get_product($upgrade_id);
                 if (!$upgrade_product) continue;
-                
+
                 // Only skip products that are explicitly marked as out of stock
                 if (!$upgrade_product->is_in_stock()) {
                     continue;
                 }
-                
+
                 $regular_price = $upgrade_product->get_price();
                 $special_price = isset($custom_prices[$upgrade_id]) ? $custom_prices[$upgrade_id] : $regular_price;
-                
+
                 $sorted_products[$upgrade_id] = [
-                    'product' => $upgrade_product,
-                    'price' => $special_price,
-                    'original_price' => $regular_price
+                    'product'        => $upgrade_product,
+                    'price'          => $special_price,
+                    'original_price' => $regular_price,
                 ];
             }
-            
+
             // Skip rendering this category if no products are in stock
             if (empty($sorted_products)) continue;
-            
+
             uasort($sorted_products, function($a, $b) {
                 return $a['price'] <=> $b['price'];
             });
-            
-            echo '<div class="pcgamer-category-dropdown">';
+
+            $is_required = in_array($slug, $required_steps);
+            if ($is_required) $step_counter++;
+            $step_attr   = $is_required ? ' data-step="' . $step_counter . '"' : '';
+            $locked_attr = ($is_required && $step_counter > 1) ? ' data-locked="true"' : ' data-locked="false"';
+
+            echo '<div class="pcgamer-category-dropdown"' . $step_attr . $locked_attr . '>';
             echo '<div class="pcgamer-dropdown-header">';
-            echo '<h3>' . esc_html($label) . '</h3>';
+            if ($is_required) {
+                echo '<span class="pcgamer-step-number" style="display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;background:#1a73e8;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:8px;">' . $step_counter . '</span>';
+            }
+            echo '<h3 style="display:inline;">' . esc_html($label) . '</h3>';
             echo '<span class="pcgamer-dropdown-icon">▼</span>';
             echo '</div>';
             
