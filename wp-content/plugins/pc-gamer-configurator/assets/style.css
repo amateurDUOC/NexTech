@@ -636,3 +636,44 @@
     }
 }
 
+
+/* ── Información del producto ─────────────────────────────────────────────── */
+
+.pcgamer-product-info {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: #f0f7ff;
+    border: 1px solid #cce0ff;
+    border-left: 4px solid #1a73e8;
+    border-radius: 6px;
+}
+
+.pcgamer-info-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+}
+
+.pcgamer-info-list li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.4;
+}
+
+.pcgamer-info-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+    .pcgamer-info-list {
+        flex-direction: column;
+        gap: 8px;
+    }
+}

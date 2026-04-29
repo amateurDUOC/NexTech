@@ -68,8 +68,8 @@ class PCGamerConfigurator {
         if ( ! is_product() ) return;
 
         $plugin_url = plugin_dir_url(__FILE__);
-        wp_enqueue_style('pcgamer-configurator-styles', $plugin_url . 'assets/style.css', [], '1.3.1');
-        wp_enqueue_script('pcgamer-checkbox-control',        $plugin_url . 'assets/checkbox-control.js',        [], '1.2',   true);
+        wp_enqueue_style('pcgamer-configurator-styles', $plugin_url . 'assets/style.css', [], '1.3.2');
+        wp_enqueue_script('pcgamer-checkbox-control',        $plugin_url . 'assets/checkbox-control.js',        [], '1.3',   true);
         wp_enqueue_script('pcgamer-carousel-dropdown',       $plugin_url . 'assets/carousel-dropdown.js',       [], '1.2',   true);
         wp_enqueue_script('pcgamer-mobile-carousel',         $plugin_url . 'assets/mobile-carousel.js',         [], '1.0.1', true);
         wp_enqueue_script('pcgamer-mobile-enhancements',     $plugin_url . 'assets/mobile-enhancements.js',     [], '1.1.1', true);
@@ -942,14 +942,14 @@ class PCGamerConfigurator {
         return $tabs;
     }
 
-    // ── Eliminar tabla HTML de la descripción del producto ────────────────────
+    // ── Eliminar descripción completa en productos del configurador ───────────
 
     public function remove_description_table($content) {
         if (!is_singular('product')) return $content;
         global $post;
         if (!$post || get_post_meta($post->ID, '_pcgamer_enabled', true) !== 'yes') return $content;
-        // Elimina cualquier <table>...</table> del contenido, conservando el resto (bullets, párrafos, etc.)
-        return preg_replace('/<table[\s\S]*?<\/table>/i', '', $content);
+        // Vaciar la descripción completamente: la información se muestra en el configurador
+        return '';
     }
 
     /**
@@ -1446,7 +1446,17 @@ HTML;
             echo '</div>';
             echo '</div>';
         }
-        
+
+        // ── Información del producto ──────────────────────────────────────────
+        echo '<div class="pcgamer-product-info">';
+        echo '<ul class="pcgamer-info-list">';
+        echo '<li><span class="pcgamer-info-icon">✅</span> Incluye <strong>Windows 11</strong> instalado y activado</li>';
+        echo '<li><span class="pcgamer-info-icon">🛡️</span> <strong>1 año de garantía</strong> en todos los componentes</li>';
+        echo '<li><span class="pcgamer-info-icon">❌</span> No incluye WiFi ni Bluetooth integrado</li>';
+        echo '<li><span class="pcgamer-info-icon">ℹ️</span> Los componentes pueden variar según disponibilidad de stock</li>';
+        echo '</ul>';
+        echo '</div>';
+
         echo '</div>';
     }
 

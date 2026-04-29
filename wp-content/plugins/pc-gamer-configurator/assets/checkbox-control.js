@@ -235,24 +235,17 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateItemSelection(checkbox) {
         const itemElement = checkbox.closest('.upgrade-item');
         if (itemElement) {
-            // For mobile, make sure we don't apply any transforms that would affect layout
-            if (window.innerWidth <= 768) {
-                if (checkbox.checked) {
-                    itemElement.classList.add('selected');
-                    // Ensure we don't apply any transform that might scale the element
-                    itemElement.style.transform = 'none';
-                } else {
-                    itemElement.classList.remove('selected');
-                    // Reset to default - no transform
-                    itemElement.style.transform = 'none';
-                }
+            const btn = itemElement.querySelector('.select-button');
+
+            if (checkbox.checked) {
+                itemElement.classList.add('selected');
+                if (btn) btn.textContent = 'Seleccionado';
+                // Ensure we don't apply any transform that might scale the element
+                if (window.innerWidth <= 768) itemElement.style.transform = 'none';
             } else {
-                // Desktop behavior - simple class toggle
-                if (checkbox.checked) {
-                    itemElement.classList.add('selected');
-                } else {
-                    itemElement.classList.remove('selected');
-                }
+                itemElement.classList.remove('selected');
+                if (btn) btn.textContent = 'Seleccionar';
+                if (window.innerWidth <= 768) itemElement.style.transform = 'none';
             }
         }
     }
