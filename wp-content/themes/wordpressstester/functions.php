@@ -10,6 +10,35 @@ function load_jquery_in_wordpress() {
 add_action('wp_enqueue_scripts', 'load_jquery_in_wordpress');
 
 
+/* SELECT2 — Agregado el 2026-04-23
+   ANTES: Select2 se cargaba como <link> y <script> inline dentro de lioren_facturacion_field()
+   PROBLEMA: Carga directa desde CDN externo sin pasar por WordPress:
+     - Sin versioning ni cache control de WordPress
+     - Si el CDN falla o está lento, el checkout se rompe visualmente
+     - WordPress no puede minificar ni concatenar estos assets
+     - Se cargaba en TODAS las visitas al checkout, incluso sin factura
+   SOLUCIÓN: Registrado correctamente via wp_enqueue con is_checkout() para cargar
+   SOLO en la página de checkout, no en todo el sitio.
+   REVERTIR: Eliminar esta función y restaurar las líneas <link> y <script> en lioren_facturacion_field() */
+function nextech_enqueue_select2() {
+    if ( ! is_checkout() ) return;
+    wp_enqueue_style(
+        'select2',
+        'https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css',
+        [],
+        '4.0.13'
+    );
+    wp_enqueue_script(
+        'select2',
+        'https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js',
+        ['jquery'],
+        '4.0.13',
+        true
+    );
+}
+add_action( 'wp_enqueue_scripts', 'nextech_enqueue_select2' );
+
+
 function remove_target_blank_with_js() {
     ?>
     <script>
@@ -28,6 +57,57 @@ add_action('wp_footer', 'remove_target_blank_with_js');
 add_action('woocommerce_account_content', 'custom_account_interface', 5);
 
 define('BASE_URL', 'https://rstech.cl');
+
+
+/* ── Carrito: Auto-actualizar al cambiar cantidad + ocultar botón ────────────
+   WooCommerce no auto-actualiza el carrito al cambiar el input qty.
+   Detectamos el evento "change" en los inputs de cantidad y disparamos
+   el click del botón update_cart con un debounce de 600ms.
+   El botón se oculta con CSS (no se elimina del DOM para que el trigger funcione).
+   ─────────────────────────────────────────────────────────────────────────── */
+add_action( 'wp_footer', 'nextech_cart_auto_update' );
+function nextech_cart_auto_update() {
+    if ( ! is_cart() ) return;
+    ?>
+    <script>
+    ( function ( $ ) {
+        var timer;
+        $( document ).on( 'change', '.woocommerce-cart-form .qty', function () {
+            clearTimeout( timer );
+            timer = setTimeout( function () {
+                $( '[name="update_cart"]' ).prop( 'disabled', false ).trigger( 'click' );
+            }, 600 );
+        } );
+    } )( jQuery );
+    </script>
+    <?php
+}
+
+
+/* ── Carrito: Suprimir widgets nativos de WooCommerce en tienda/categorías ───
+   Los widgets WC_Widget_Price_Filter, WC_Widget_Product_Categories y
+   WC_Widget_Layered_Nav aparecen en la barra lateral de la tienda aunque
+   ya existe el nextech-product-filter. Este filtro los bloquea en
+   is_shop() e is_product_category() sin necesidad de eliminarlos del
+   panel de Appearance → Widgets.
+   ─────────────────────────────────────────────────────────────────────────── */
+add_filter( 'widget_display_callback', 'nextech_suppress_wc_filter_widgets', 10, 3 );
+function nextech_suppress_wc_filter_widgets( $instance, $widget, $args ) {
+    if ( ! is_shop() && ! is_product_category() ) {
+        return $instance;
+    }
+    $blocked = [
+        'WC_Widget_Price_Filter',
+        'WC_Widget_Product_Categories',
+        'WC_Widget_Layered_Nav',
+        'WC_Widget_Layered_Nav_Filters',
+        'WC_Widget_Product_Tag_Cloud',
+    ];
+    if ( in_array( get_class( $widget ), $blocked, true ) ) {
+        return false;
+    }
+    return $instance;
+}
 
 function custom_account_interface() {
     // Mostrar la interfaz solo en la página principal de "Mi Cuenta"
@@ -68,10 +148,8 @@ function custom_account_interface() {
 add_action('woocommerce_after_order_notes', 'lioren_facturacion_field');
 
 function lioren_facturacion_field($checkout) {
+    // Select2 cargado via nextech_enqueue_select2() — ver comentario al inicio del archivo
     ?>
-    <!-- Incluir Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 
     <style>
         /* Estilo del botón */

@@ -8,11 +8,52 @@ Version: 3.0
 
 /*************** ADD CUSTOM CSS HERE.   ***************/
 
-
+.woocommerce-page .product-container span.amount {
+    font-size: 40px !important;
+}
 @media only screen and (max-width: 48em) {
 /*************** ADD MOBILE ONLY CSS HERE  ***************/
 
+/*Reeduce el precio del producto de 40px a 22px en movil*/
+.woocommerce-page .product-container span.amount{
+	font-size: 18px !important;
+}
 
+/*Reduce el titulo principal de los banners en movil*/
+.banner h1 {
+	font-size: 1.8em !important;
+}
+
+/*Reduce el subtitulo de los banners en movil*/
+
+.banner h2 {
+	font-size: 1.4em !important;
+}
+
+/*Reduce el texto del encabezado de mi cuenta de 18px a15px*/
+.account-header p{
+	font-size: 15px !important;
+}
+
+/*Reduce el titulo del panel de pedidos de 24px a 18px*/
+.orders-panel h2{
+	font-size: 18px !important;
+}
+ /*permite el scroll horinzontal solo en la tabla de pedidos sin afectar el resto de la pagina*/
+ .orders-panel {
+	overflow-x: auto;
+ }
+
+ .header-contact {
+    display: flex !important;
+}
+
+}
+
+
+
+.header-bottom-nav.nav-left li:not(.nav-icon){
+	display: none !important;
 }
 
 
@@ -25,9 +66,7 @@ Version: 3.0
 	display: none !important;
 }
 
-.product-container span.amount {
-    font-size: 40px !important;
-}
+
 
 
 /* Contenedor principal */

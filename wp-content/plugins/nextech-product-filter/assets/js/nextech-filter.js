@@ -27,7 +27,8 @@
     function grid() {
         return $( '.nextech-product-grid' )
             || $( '.products.woocommerce-products-grid' )
-            || $( 'ul.products' );
+            || $( 'ul.products' )
+            || $( 'div.products' );
     }
 
     function esc( str ) {
