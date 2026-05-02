@@ -48,6 +48,15 @@ Version: 3.0
     display: flex !important;
 }
 
+/*Aumenta texto de categoria de producto en movil dandole un tamaño mas acorde y notorio en pantallas de moviles*/
+p.category.product-cat {
+	font-size: 12px !important;
+	opacity: 1 !important;
+	color: #1e73be;
+	font-weight: 700 !important;
+}
+
+
 }
 
 
