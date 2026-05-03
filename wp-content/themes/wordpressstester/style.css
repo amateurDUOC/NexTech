@@ -44,9 +44,6 @@ Version: 3.0
 	overflow-x: auto;
  }
 
- .header-contact {
-    display: flex !important;
-}
 
 /*Aumenta texto de categoria de producto en movil dandole un tamaño mas acorde y notorio en pantallas de moviles*/
 p.category.product-cat {
@@ -55,6 +52,22 @@ p.category.product-cat {
 	color: #1e73be;
 	font-weight: 700 !important;
 }
+
+/*Aumenta el alto del boton rergistarse para mejor area te toque en movil*/
+.header-button-1 .button {
+	min-height:35x !important;
+	display: flex !important;
+	align-items: center !important;
+}
+
+/*agrega margen lateral al slider en movil*/
+.slider.row-collapse {
+	margin: 0 15px !important;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+
 
 
 }
