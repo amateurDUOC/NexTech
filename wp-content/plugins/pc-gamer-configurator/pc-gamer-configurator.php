@@ -63,6 +63,8 @@ class PCGamerConfigurator {
         add_filter('the_content', [ $this, 'remove_description_table' ], 20);
         // Mostrar información del producto (Windows, garantía, etc.) junto al SKU/Categorías
         add_action('woocommerce_product_meta_end', [ $this, 'render_product_info_section' ]);
+        // Quitar líneas redundantes de la descripción corta en productos del configurador
+        add_filter('woocommerce_short_description', [ $this, 'clean_short_description' ], 20);
     }
 
     public function enqueue_styles() {
@@ -955,6 +957,24 @@ class PCGamerConfigurator {
         return '';
     }
 
+    // ── Limpiar descripción corta: quitar líneas redundantes ──────────────────
+
+    public function clean_short_description($excerpt) {
+        global $post;
+        if (!$post || get_post_meta($post->ID, '_pcgamer_enabled', true) !== 'yes') return $excerpt;
+
+        // Eliminar cualquier <p> o línea que mencione windows instalado o garantía
+        // ya que esa información se muestra en el recuadro azul del configurador
+        $patterns = [
+            '/<p>[^<]*(?:windows instalado|1 año de garantía|garantía|windows installed)[^<]*<\/p>/i',
+        ];
+        foreach ($patterns as $pattern) {
+            $excerpt = preg_replace($pattern, '', $excerpt);
+        }
+
+        return $excerpt;
+    }
+
     /**
      * AJAX handler for syncing category prices with WooCommerce
      */
@@ -1363,12 +1383,38 @@ HTML;
         ];
         $step_counter = 0;
 
+        // ── Batch-load: recolectar todos los IDs de upgrades y cargarlos de
+        //    una sola vez con una única query, evitando el patrón N+1.
+        $all_upgrade_ids = [];
+        foreach ( $this->plugin_categories as $slug => $label ) {
+            if ( ! empty( $upgrades[ $slug ] ) ) {
+                foreach ( $upgrades[ $slug ] as $uid ) {
+                    $all_upgrade_ids[] = (int) $uid;
+                }
+            }
+        }
+        $all_upgrade_ids = array_unique( array_filter( $all_upgrade_ids ) );
+
+        $upgrade_products_map = [];
+        if ( ! empty( $all_upgrade_ids ) ) {
+            $loaded = wc_get_products( [
+                'include' => $all_upgrade_ids,
+                'limit'   => -1,
+                'status'  => 'publish',
+                'return'  => 'objects',
+            ] );
+            foreach ( $loaded as $lp ) {
+                $upgrade_products_map[ $lp->get_id() ] = $lp;
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         foreach ($this->plugin_categories as $slug => $label) {
             if (empty($upgrades[$slug])) continue;
 
             $sorted_products = [];
             foreach ($upgrades[$slug] as $upgrade_id) {
-                $upgrade_product = wc_get_product($upgrade_id);
+                $upgrade_product = $upgrade_products_map[ (int) $upgrade_id ] ?? null;
                 if (!$upgrade_product) continue;
 
                 // Only skip products that are explicitly marked as out of stock
