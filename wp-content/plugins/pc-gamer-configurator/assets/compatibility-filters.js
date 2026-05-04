@@ -298,26 +298,51 @@
 
     /**
      * Muestra/oculta tarjetas en un carrusel según la lista de IDs compatibles.
+     *
+     * Comportamiento de degradación elegante:
+     * - Si compatibleIds tiene elementos → filtra normalmente (oculta incompatibles).
+     * - Si compatibleIds está vacío → los datos de compatibilidad son incompletos;
+     *   se muestran TODOS los productos con un aviso amarillo para no bloquear al usuario.
      */
     function updateCarouselProducts(categorySlug, compatibleIds) {
         const wrapper = document.querySelector(`.pcgamer-carousel-wrapper[data-category="${categorySlug}"]`);
         if (!wrapper) return;
 
+        const hasCompatibilityData = compatibleIds && compatibleIds.length > 0;
+
+        // Sin datos de compatibilidad → mostrar todo con aviso y salir
+        if (!hasCompatibilityData) {
+            wrapper.querySelectorAll('.upgrade-item').forEach(item => {
+                item.style.display = '';
+                item.style.opacity = '1';
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (cb) cb.disabled = false;
+                item.classList.remove('pcgamer-incompatible');
+            });
+            showCompatibilityWarning(
+                wrapper,
+                '⚠ Datos de compatibilidad incompletos — se muestran todas las opciones. Verifica antes de agregar al carrito.',
+                'warn'
+            );
+            return;
+        }
+
+        // Con datos → filtrar normalmente
         let visible = 0;
         wrapper.querySelectorAll('.upgrade-item').forEach(item => {
-            const cb        = item.querySelector('input[type="checkbox"]');
+            const cb       = item.querySelector('input[type="checkbox"]');
             if (!cb) return;
-            const isCompat  = compatibleIds.includes(parseInt(cb.value));
+            const isCompat = compatibleIds.includes(parseInt(cb.value));
 
             if (isCompat) {
-                item.style.display  = '';
-                item.style.opacity  = '1';
-                cb.disabled         = false;
+                item.style.display = '';
+                item.style.opacity = '1';
+                cb.disabled        = false;
                 item.classList.remove('pcgamer-incompatible');
                 visible++;
             } else {
-                item.style.display  = 'none';
-                cb.disabled         = true;
+                item.style.display = 'none';
+                cb.disabled        = true;
                 if (cb.checked) {
                     cb.checked = false;
                     cb.dispatchEvent(new Event('change', { bubbles: true }));
@@ -327,7 +352,20 @@
         });
 
         if (visible === 0) {
-            showCompatibilityWarning(wrapper, 'No hay productos compatibles con tu selección actual');
+            // Hay datos pero ningún producto del carrusel coincide → datos desincronizados.
+            // Mostrar todos con aviso en lugar de bloquear completamente.
+            wrapper.querySelectorAll('.upgrade-item').forEach(item => {
+                item.style.display = '';
+                item.style.opacity = '0.7';
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (cb) cb.disabled = false;
+                item.classList.remove('pcgamer-incompatible');
+            });
+            showCompatibilityWarning(
+                wrapper,
+                '⚠ Los productos configurados para este paso no coinciden con los resultados de compatibilidad. Verifica la configuración.',
+                'error'
+            );
         } else {
             removeCompatibilityWarning(wrapper);
         }
@@ -349,15 +387,19 @@
         });
     }
 
-    function showCompatibilityWarning(wrapper, message) {
+    function showCompatibilityWarning(wrapper, message, type) {
         let el = wrapper.parentElement.querySelector('.compatibility-warning');
         if (!el) {
             el = document.createElement('div');
-            el.className   = 'compatibility-warning';
-            el.style.cssText = 'padding:8px 12px;background:#fff3cd;color:#856404;font-size:13px;border-radius:4px;margin:4px 0;';
+            el.className = 'compatibility-warning';
             wrapper.parentElement.insertBefore(el, wrapper);
         }
-        el.textContent = message;
+        const styles = {
+            warn:  'padding:8px 12px;background:#fff3cd;color:#856404;font-size:13px;border-radius:4px;margin:4px 0;border-left:3px solid #ffc107;',
+            error: 'padding:8px 12px;background:#f8d7da;color:#721c24;font-size:13px;border-radius:4px;margin:4px 0;border-left:3px solid #dc3545;',
+        };
+        el.style.cssText = styles[type] || styles.warn;
+        el.textContent   = message;
         el.style.display = 'block';
     }
 
