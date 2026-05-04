@@ -72,7 +72,7 @@ class PCGamerConfigurator {
         if ( ! is_product() ) return;
 
         $plugin_url = plugin_dir_url(__FILE__);
-        wp_enqueue_style('pcgamer-configurator-styles', $plugin_url . 'assets/style.css', [], '1.3.3');
+        wp_enqueue_style('pcgamer-configurator-styles', $plugin_url . 'assets/style.css', [], '1.3.4');
         wp_enqueue_script('pcgamer-checkbox-control',        $plugin_url . 'assets/checkbox-control.js',        [], '1.4',   true);
         wp_enqueue_script('pcgamer-carousel-dropdown',       $plugin_url . 'assets/carousel-dropdown.js',       [], '1.2',   true);
         wp_enqueue_script('pcgamer-mobile-carousel',         $plugin_url . 'assets/mobile-carousel.js',         [], '1.0.1', true);
@@ -959,20 +959,26 @@ class PCGamerConfigurator {
         return '';
     }
 
-    // ── Limpiar descripción corta: quitar líneas redundantes ──────────────────
+    // ── Limpiar descripción corta: quitar líneas que se muestran en el recuadro azul ──
 
     public function clean_short_description($excerpt) {
         global $post;
         if (!$post || get_post_meta($post->ID, '_pcgamer_enabled', true) !== 'yes') return $excerpt;
 
-        // Eliminar cualquier <p> que contenga "windows instalado" o "garantia/garantía",
-        // incluso si tiene <span> u otros tags anidados dentro.
-        // El flag 's' hace que '.' también haga match con saltos de línea.
-        $excerpt = preg_replace(
+        // Eliminar párrafos que ahora aparecen en el recuadro de información del producto,
+        // evitando duplicados. El flag /is permite tags anidados y saltos de línea.
+        $patterns = [
+            // "Incluye windows instalado y 1 año de garantía"
             '/<p[^>]*>.*?(?:windows instalado|garantia|garant&iacute;a|garant[ií]a).*?<\/p>/is',
-            '',
-            $excerpt
-        );
+            // "Producto a pedido, tiempo de armado y pruebas..."
+            '/<(?:p|h[1-6])[^>]*>.*?producto a pedido.*?<\/(?:p|h[1-6])>/is',
+            // "Necesitas agregar / cambiar un componente, háblanos Aquí"
+            '/<p[^>]*>.*?(?:necesitas agregar|h[aá]blanos).*?<\/p>/is',
+        ];
+
+        foreach ($patterns as $pattern) {
+            $excerpt = preg_replace($pattern, '', $excerpt);
+        }
 
         return $excerpt;
     }
@@ -1507,13 +1513,31 @@ HTML;
         global $product;
         if (!$product || get_post_meta($product->get_id(), '_pcgamer_enabled', true) !== 'yes') return;
 
+        // Extraer el link de "háblanos Aquí" del short description original (sin filtrar)
+        $raw_excerpt = $product->get_short_description();
+        $contact_url = '';
+        if (preg_match('/<a[^>]+href=["\']([^"\']+)["\'][^>]*>\s*(?:aqu[ií]|Aqu[ií])\s*<\/a>/i', $raw_excerpt, $m)) {
+            $contact_url = $m[1];
+        }
+
         echo '<div class="pcgamer-product-info">';
+
+        // ── Especificaciones incluidas ──────────────────────────────────────
         echo '<ul class="pcgamer-info-list">';
         echo '<li><span class="pcgamer-info-icon">✅</span> Incluye <strong>Windows 11</strong> instalado y activado</li>';
         echo '<li><span class="pcgamer-info-icon">🛡️</span> <strong>1 año de garantía</strong> en todos los componentes</li>';
         echo '<li><span class="pcgamer-info-icon">❌</span> No incluye WiFi ni Bluetooth integrado</li>';
         echo '<li><span class="pcgamer-info-icon">ℹ️</span> Los componentes pueden variar según disponibilidad de stock</li>';
         echo '</ul>';
+
+        // ── Detalles de entrega y contacto ──────────────────────────────────
+        echo '<div class="pcgamer-info-footer">';
+        echo '<p class="pcgamer-info-delivery">📦 <strong>Producto a pedido</strong> — tiempo de armado y pruebas de 2 a 5 días hábiles</p>';
+        if ($contact_url) {
+            echo '<p class="pcgamer-info-contact">🔧 Necesitas agregar / cambiar un componente, <a href="' . esc_url($contact_url) . '">háblanos aquí</a></p>';
+        }
+        echo '</div>';
+
         echo '</div>';
     }
 

@@ -679,3 +679,39 @@
         gap: 8px;
     }
 }
+
+/* ── Footer del recuadro de información ──────────────────────────────────── */
+
+.pcgamer-info-footer {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #cce0ff;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 24px;
+}
+
+.pcgamer-info-delivery,
+.pcgamer-info-contact {
+    margin: 0;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.4;
+}
+
+.pcgamer-info-contact a {
+    color: #1a73e8;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.pcgamer-info-contact a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .pcgamer-info-footer {
+        flex-direction: column;
+        gap: 6px;
+    }
+}
