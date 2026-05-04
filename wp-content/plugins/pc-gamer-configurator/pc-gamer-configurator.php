@@ -965,14 +965,14 @@ class PCGamerConfigurator {
         global $post;
         if (!$post || get_post_meta($post->ID, '_pcgamer_enabled', true) !== 'yes') return $excerpt;
 
-        // Eliminar cualquier <p> o línea que mencione windows instalado o garantía
-        // ya que esa información se muestra en el recuadro azul del configurador
-        $patterns = [
-            '/<p>[^<]*(?:windows instalado|1 año de garantía|garantía|windows installed)[^<]*<\/p>/i',
-        ];
-        foreach ($patterns as $pattern) {
-            $excerpt = preg_replace($pattern, '', $excerpt);
-        }
+        // Eliminar cualquier <p> que contenga "windows instalado" o "garantia/garantía",
+        // incluso si tiene <span> u otros tags anidados dentro.
+        // El flag 's' hace que '.' también haga match con saltos de línea.
+        $excerpt = preg_replace(
+            '/<p[^>]*>.*?(?:windows instalado|garantia|garant&iacute;a|garant[ií]a).*?<\/p>/is',
+            '',
+            $excerpt
+        );
 
         return $excerpt;
     }
