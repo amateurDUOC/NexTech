@@ -11,8 +11,35 @@ Version: 3.0
 .woocommerce-page .product-container span.amount {
     font-size: 40px !important;
 }
-@media only screen and (max-width: 48em) {
+@media only screen and (max-width: 768px) {
 /*************** ADD MOBILE ONLY CSS HERE  ***************/
+
+/*Reduce el tamño del logo para disminuir la altura del header en movil*/
+#logo img {
+	max-height: 45px !important;
+	width: auto !important;
+}
+
+/*ajustar el dropdown del buscador en movil*/
+.header-search-dropdown .nav-dropdown-simple {
+    position: fixed !important;
+    left: 5vw !important;
+    right: 5vw !important;
+    width: 90vw !important;
+    top: var(--flatsome-header-sticky-height, 55px) !important;
+    transform: none !important;
+    margin: 0 !important;
+    padding: 8px 8px !important;
+    min-width: auto !important;
+    box-sizing: border-box !important;
+}
+.header-search-form-wrapper input.search-field {
+	height: 38px !important	;
+	font-size: 14px !important;
+}
+
+
+
 
 /*Reeduce el precio del producto de 40px a 22px en movil*/
 .woocommerce-page .product-container span.amount{
@@ -55,7 +82,7 @@ p.category.product-cat {
 
 /*Aumenta el alto del boton rergistarse para mejor area te toque en movil*/
 .header-button-1 .button {
-	min-height:35x !important;
+	min-height:30px !important;
 	display: flex !important;
 	align-items: center !important;
 }
@@ -67,6 +94,50 @@ p.category.product-cat {
 	overflow: hidden;
 }
 
+
+/*negrita a los titulos H2 en movil*/
+h2 {
+	font-weight: 600 !important;
+}
+
+/*mejora la apariencia de los resultados de busqueda en vivo en movil*/
+.autocomplete-suggestion {
+	display: grid !important;
+	grid-template-columns: 64px 1fr !important;
+	grid-template-rows: auto auto !important;
+	gap: 4px 10px !important;
+	padding: 10px 8px !important;
+	align-items: center !important;
+}
+
+/* Imagen ocupa las 2 filas a la izquierda */
+.autocomplete-suggestion .search-image {
+	grid-column: 1 !important;
+	grid-row: 1 / 3 !important;
+	width: 74px !important;
+	height: 74px !important;
+	object-fit: cover !important;
+	border-radius: 4px !important;
+}
+
+/* Nombre completo arriba a la derecha, sin corte */
+.autocomplete-suggestion .search-name {
+	grid-column: 2 !important;
+	grid-row: 1 !important;
+	font-size: 12px !important;
+	line-height: 1.3 !important;
+	display: block !important;
+	overflow: visible !important;
+	white-space: normal !important;
+}
+
+/* Precio abajo a la derecha */
+.autocomplete-suggestion .search-price {
+	grid-column: 2 !important;
+	grid-row: 2 !important;
+	font-size: 12px !important;
+	white-space: nowrap !important;
+}
 
 
 
