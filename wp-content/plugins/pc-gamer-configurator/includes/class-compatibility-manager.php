@@ -56,13 +56,28 @@ class CompatibilityManager {
      * Si el componente seleccionado no tiene el meta de compatibilidad configurado,
      * devuelve TODOS los productos (sin filtrar) para no ocultar tarjetas por falta de datos.
      */
-    public function get_compatible_products($target_category, $selected_component_id, $compatibility_type = null) {
+    /**
+     * @param string   $target_category      Categoría de destino (slug/nombre).
+     * @param int      $selected_component_id ID del componente ya seleccionado (p.ej. CPU).
+     * @param string|null $compatibility_type Tipo de check: 'socket', 'ram_type', 'form_factor', etc.
+     * @param int[]    $carousel_ids          IDs de los productos que realmente están en el carrusel
+     *                                        del frontend. Si se proporcionan, se filtran SOLO esos
+     *                                        productos, evitando buscar en toda la categoría WC.
+     */
+    public function get_compatible_products($target_category, $selected_component_id, $compatibility_type = null, $carousel_ids = []) {
         $selected_product = wc_get_product($selected_component_id);
         if (!$selected_product) {
             return [];
         }
 
-        $target_products = $this->get_products_in_category($target_category);
+        // Prioridad: usar los IDs del carrusel si el frontend los envió.
+        // Fallback: buscar todos los productos de la categoría WooCommerce.
+        if (!empty($carousel_ids)) {
+            $target_products = $carousel_ids;
+        } else {
+            $target_products = $this->get_products_in_category($target_category);
+        }
+
         if (empty($target_products)) {
             return [];
         }
@@ -78,9 +93,22 @@ class CompatibilityManager {
             return $target_products;
         }
 
+        // ── Batch-load: cargar todos los productos destino en una sola query
+        $loaded = wc_get_products( [
+            'include' => $target_products,
+            'limit'   => -1,
+            'status'  => 'publish',
+            'return'  => 'objects',
+        ] );
+        $products_map = [];
+        foreach ( $loaded as $lp ) {
+            $products_map[ $lp->get_id() ] = $lp;
+        }
+        // ─────────────────────────────────────────────────────────────────
+
         $compatible = [];
         foreach ($target_products as $product_id) {
-            $target_product = wc_get_product($product_id);
+            $target_product = $products_map[ (int) $product_id ] ?? null;
             if (!$target_product) {
                 continue;
             }
@@ -378,15 +406,25 @@ class CompatibilityManager {
             wp_send_json_error(['message' => 'Verificación de seguridad fallida']);
         }
 
-        $component_id       = isset($_POST['component_id'])       ? intval($_POST['component_id'])                      : 0;
-        $target_category    = isset($_POST['target_category'])    ? sanitize_text_field($_POST['target_category'])      : '';
-        $compatibility_type = isset($_POST['compatibility_type']) ? sanitize_text_field($_POST['compatibility_type'])   : null;
+        $component_id       = isset($_POST['component_id'])       ? intval($_POST['component_id'])                    : 0;
+        $target_category    = isset($_POST['target_category'])    ? sanitize_text_field($_POST['target_category'])    : '';
+        $compatibility_type = isset($_POST['compatibility_type']) ? sanitize_text_field($_POST['compatibility_type']) : null;
 
         if (!$component_id || !$target_category) {
             wp_send_json_error(['message' => 'Parámetros inválidos']);
         }
 
-        $compatible_ids = $this->get_compatible_products($target_category, $component_id, $compatibility_type);
+        // IDs que realmente están en el carrusel — el JS los envía para evitar
+        // buscar en toda la categoría WooCommerce (que puede no coincidir).
+        $carousel_ids = [];
+        if (!empty($_POST['carousel_ids'])) {
+            $decoded = json_decode(wp_unslash($_POST['carousel_ids']), true);
+            if (is_array($decoded)) {
+                $carousel_ids = array_map('intval', $decoded);
+            }
+        }
+
+        $compatible_ids = $this->get_compatible_products($target_category, $component_id, $compatibility_type, $carousel_ids);
 
         $product_details = [];
         foreach ($compatible_ids as $product_id) {

@@ -286,12 +286,20 @@
     }
 
     function fetchCompatibleProducts(componentId, targetCategory, compatibilityType) {
+        // Enviar los IDs que realmente están en el carrusel de esta categoría,
+        // para que el backend filtre sobre esos productos y no sobre toda la categoría.
+        const wrapper = document.querySelector(`.pcgamer-carousel-wrapper[data-category="${targetCategory}"]`);
+        const carouselIds = wrapper
+            ? Array.from(wrapper.querySelectorAll('input[type="checkbox"]')).map(cb => parseInt(cb.value, 10))
+            : [];
+
         const data = new FormData();
-        data.append('action',            'pcgamer_get_compatible_products');
-        data.append('component_id',      componentId);
-        data.append('target_category',   targetCategory);
+        data.append('action',             'pcgamer_get_compatible_products');
+        data.append('component_id',       componentId);
+        data.append('target_category',    targetCategory);
         data.append('compatibility_type', compatibilityType || '');
-        data.append('nonce',             ajaxNonce);
+        data.append('nonce',              ajaxNonce);
+        data.append('carousel_ids',       JSON.stringify(carouselIds));
 
         return fetch(ajaxUrl, { method: 'POST', body: data }).then(r => r.json());
     }

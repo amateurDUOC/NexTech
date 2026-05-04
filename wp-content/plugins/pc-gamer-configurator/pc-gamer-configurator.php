@@ -593,7 +593,7 @@ class PCGamerConfigurator {
             'radiator_support' => 'Radiadores soportados',
         ];
 
-        $ram_options  = ['DDR4', 'DDR5'];
+        $ram_options  = ['DDR4', 'DDR5', 'DDR4,DDR5'];
         $ff_options   = ['ATX', 'Micro-ATX', 'Mini-ITX'];
         $rad_options  = ['120', '240', '360'];
         ?>
@@ -699,10 +699,12 @@ class PCGamerConfigurator {
                                                 style="width:100%;max-width:130px;padding:5px 7px;" />
 
                                         <?php elseif ($f === 'ram_type'): ?>
-                                            <select class="pcgamer-compat-field" data-field="ram_type" style="width:100%;max-width:130px;padding:5px 7px;">
+                                            <select class="pcgamer-compat-field" data-field="ram_type" style="width:100%;max-width:150px;padding:5px 7px;">
                                                 <option value="">— Sin especificar —</option>
-                                                <?php foreach ($ram_options as $ro): ?>
-                                                    <option value="<?php echo $ro; ?>" <?php selected($cur_ram, $ro); ?>><?php echo $ro; ?></option>
+                                                <?php
+                                                $ram_labels = ['DDR4' => 'DDR4', 'DDR5' => 'DDR5', 'DDR4,DDR5' => 'DDR4/DDR5 (dual)'];
+                                                foreach ($ram_labels as $ro => $rl): ?>
+                                                    <option value="<?php echo esc_attr($ro); ?>" <?php selected($cur_ram, $ro); ?>><?php echo esc_html($rl); ?></option>
                                                 <?php endforeach; ?>
                                             </select>
 
@@ -869,7 +871,7 @@ class PCGamerConfigurator {
         }
 
         $allowed_ff  = ['ATX', 'Micro-ATX', 'Mini-ITX'];
-        $allowed_ram = ['DDR4', 'DDR5'];
+        $allowed_ram = ['DDR4', 'DDR5', 'DDR4,DDR5'];
         $saved       = 0;
 
         foreach ($items as $item) {

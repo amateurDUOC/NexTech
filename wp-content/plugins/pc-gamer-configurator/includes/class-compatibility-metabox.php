@@ -99,9 +99,13 @@ class CompatibilityMetabox {
                                 style="width:100%;max-width:300px;padding:8px;border:1px solid #ddd;border-radius:4px;"
                             >
                                 <option value="">-- Sin especificar --</option>
-                                <option value="DDR4" <?php selected($ram_type, 'DDR4'); ?>>DDR4</option>
-                                <option value="DDR5" <?php selected($ram_type, 'DDR5'); ?>>DDR5</option>
+                                <option value="DDR4"      <?php selected($ram_type, 'DDR4'); ?>>DDR4</option>
+                                <option value="DDR5"      <?php selected($ram_type, 'DDR5'); ?>>DDR5</option>
+                                <option value="DDR4,DDR5" <?php selected($ram_type, 'DDR4,DDR5'); ?>>DDR4 / DDR5 (dual — Intel 12ª/13ª/14ª gen)</option>
                             </select>
+                            <p style="color:#999;margin-top:4px;font-size:12px;">
+                                Usa <strong>DDR4 / DDR5</strong> para CPUs Intel que soportan ambos tipos según la placa madre.
+                            </p>
                         </td>
                     </tr>
 
