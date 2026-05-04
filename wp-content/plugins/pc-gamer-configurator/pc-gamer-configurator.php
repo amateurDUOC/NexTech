@@ -1513,11 +1513,23 @@ HTML;
         global $product;
         if (!$product || get_post_meta($product->get_id(), '_pcgamer_enabled', true) !== 'yes') return;
 
-        // Extraer el link de "háblanos Aquí" del short description original (sin filtrar)
+        // Intentar extraer el link de "háblanos Aquí" del short description original (sin filtrar).
+        // Se prueban varios patrones en orden de especificidad.
         $raw_excerpt = $product->get_short_description();
         $contact_url = '';
-        if (preg_match('/<a[^>]+href=["\']([^"\']+)["\'][^>]*>\s*(?:aqu[ií]|Aqu[ií])\s*<\/a>/i', $raw_excerpt, $m)) {
-            $contact_url = $m[1];
+        $url_patterns = [
+            // Link cuyo texto es "Aquí" o "Aqui"
+            '/<a[^>]+href=["\']([^"\']+)["\'][^>]*>\s*[Aa]qu[ií]\s*<\/a>/i',
+            // Cualquier link dentro de un párrafo que contenga "háblanos" o "hablanos"
+            '/h[aá]blanos[^<]*<a[^>]+href=["\']([^"\']+)["\'][^>]*>/i',
+            // Primer link de cualquier tipo en el excerpt (último recurso)
+            '/<a[^>]+href=["\']([^"\'#][^"\']+)["\'][^>]*>/i',
+        ];
+        foreach ($url_patterns as $pat) {
+            if (preg_match($pat, $raw_excerpt, $m)) {
+                $contact_url = $m[1];
+                break;
+            }
         }
 
         echo '<div class="pcgamer-product-info">';
@@ -1530,11 +1542,13 @@ HTML;
         echo '<li><span class="pcgamer-info-icon">ℹ️</span> Los componentes pueden variar según disponibilidad de stock</li>';
         echo '</ul>';
 
-        // ── Detalles de entrega y contacto ──────────────────────────────────
+        // ── Detalles de entrega y contacto ─ siempre se muestran ────────────
         echo '<div class="pcgamer-info-footer">';
         echo '<p class="pcgamer-info-delivery">📦 <strong>Producto a pedido</strong> — tiempo de armado y pruebas de 2 a 5 días hábiles</p>';
         if ($contact_url) {
             echo '<p class="pcgamer-info-contact">🔧 Necesitas agregar / cambiar un componente, <a href="' . esc_url($contact_url) . '">háblanos aquí</a></p>';
+        } else {
+            echo '<p class="pcgamer-info-contact">🔧 Necesitas agregar / cambiar un componente, <a href="' . esc_url(home_url('/contacto')) . '">háblanos aquí</a></p>';
         }
         echo '</div>';
 
