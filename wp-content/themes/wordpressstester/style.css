@@ -149,9 +149,65 @@ h2 {
 	padding-bottom: 10px !important;
 }
 
+/*reduce imagen principal del producto en movil para ver precio y bton sin scroll */
+.woocommerce-product-gallery__image img {
+	max-height: 250px !important;
+	width: auto !important;
+	object-fit: contain !important;
+	margin: 0 auto !important;
+	display: block !important;
+}
 
+/*reduce el badge de oferta en movil*/
+.badge-circle {
+	width: 60px !important;
+	height: 35px !important;
+	font-size: 12px !important;
+}
 
 }
+
+/*reduce el badge de oferta en todas las pantallas*/
+.badge-circle {
+    width: 65px !important;
+    height: 40px !important;
+    font-size: 15px !important;
+    line-height: 1.2 !important;
+}
+
+/*se mueve el badge de oferta mas adentro*/
+.product-small .badge-container {
+	top: -20px !important;
+	left: 8px !important;
+}
+
+/*borde azul en tarjetas de producto*/
+.product-small.col .col-inner {
+    
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+/*degradado tipo sobra para las tarjetas de productos*/
+.product-small.col {
+    filter: drop-shadow(0 5px 5px rgba(30, 115, 190, 1)) !important;
+}
+
+.row-box-shadow-2 .product-small.col .col-inner {
+    box-shadow: none !important;
+}
+
+/*resalta la tarjeta al pasar el mouse*/
+.product-small.col:hover .col-inner {
+    border-color: #1e73be !important;
+    transform: translateY(-3px) !important;
+    transition: transform 0.2s ease, border-color 0.2s ease !important;
+}
+.product-small.col:hover {
+    filter: drop-shadow(0 8px 10px rgb(33, 128, 210)) !important;
+    transition: filter 0.2s ease !important;
+}
+
+
 
 
 
