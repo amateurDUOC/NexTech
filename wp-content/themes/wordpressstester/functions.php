@@ -199,32 +199,6 @@ function nextech_cart_auto_update() {
     <?php
 }
 
-
-/* ── Carrito: Suprimir widgets nativos de WooCommerce en tienda/categorías ───
-   Los widgets WC_Widget_Price_Filter, WC_Widget_Product_Categories y
-   WC_Widget_Layered_Nav aparecen en la barra lateral de la tienda aunque
-   ya existe el nextech-product-filter. Este filtro los bloquea en
-   is_shop() e is_product_category() sin necesidad de eliminarlos del
-   panel de Appearance → Widgets.
-   ─────────────────────────────────────────────────────────────────────────── */
-add_filter( 'widget_display_callback', 'nextech_suppress_wc_filter_widgets', 10, 3 );
-function nextech_suppress_wc_filter_widgets( $instance, $widget, $args ) {
-    if ( ! is_shop() && ! is_product_category() ) {
-        return $instance;
-    }
-    $blocked = [
-        'WC_Widget_Price_Filter',
-        'WC_Widget_Product_Categories',
-        'WC_Widget_Layered_Nav',
-        'WC_Widget_Layered_Nav_Filters',
-        'WC_Widget_Product_Tag_Cloud',
-    ];
-    if ( in_array( get_class( $widget ), $blocked, true ) ) {
-        return false;
-    }
-    return $instance;
-}
-
 function custom_account_interface() {
     // Mostrar la interfaz solo en la página principal de "Mi Cuenta"
     if (is_account_page() && !is_wc_endpoint_url()) {
