@@ -40,3 +40,23 @@ debug.log
 # OS
 .DS_Store
 Thumbs.db
+
+# Local files (not to be committed)
+.scannerwork/
+.vscode/
+gitignore.txt
+license.txt
+local-xdebuginfo.php
+readme.html
+xmlrpc.php
+wp-content/advanced-cache.php
+wp-content/autoptimize_404_handler.php
+wp-content/ai1wm-backups/
+wp-content/aiowps_backups/
+wp-content/fonts/
+wp-content/index.php
+wp-content/jetpack-waf/
+wp-content/languages/
+wp-content/mu-plugins/
+wp-content/webtoffee_export/
+wp-content/wp-rocket-config/

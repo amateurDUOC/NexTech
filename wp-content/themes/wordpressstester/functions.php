@@ -174,6 +174,57 @@ function nextech_suppress_wc_filter_widgets( $instance, $widget, $args ) {
     return $instance;
 }
 
+
+/* ── Carrito: Auto-actualizar al cambiar cantidad + ocultar botón ────────────
+   WooCommerce no auto-actualiza el carrito al cambiar el input qty.
+   Detectamos el evento "change" en los inputs de cantidad y disparamos
+   el click del botón update_cart con un debounce de 600ms.
+   El botón se oculta con CSS (no se elimina del DOM para que el trigger funcione).
+   ─────────────────────────────────────────────────────────────────────────── */
+add_action( 'wp_footer', 'nextech_cart_auto_update' );
+function nextech_cart_auto_update() {
+    if ( ! is_cart() ) return;
+    ?>
+    <script>
+    ( function ( $ ) {
+        var timer;
+        $( document ).on( 'change', '.woocommerce-cart-form .qty', function () {
+            clearTimeout( timer );
+            timer = setTimeout( function () {
+                $( '[name="update_cart"]' ).prop( 'disabled', false ).trigger( 'click' );
+            }, 600 );
+        } );
+    } )( jQuery );
+    </script>
+    <?php
+}
+
+
+/* ── Carrito: Suprimir widgets nativos de WooCommerce en tienda/categorías ───
+   Los widgets WC_Widget_Price_Filter, WC_Widget_Product_Categories y
+   WC_Widget_Layered_Nav aparecen en la barra lateral de la tienda aunque
+   ya existe el nextech-product-filter. Este filtro los bloquea en
+   is_shop() e is_product_category() sin necesidad de eliminarlos del
+   panel de Appearance → Widgets.
+   ─────────────────────────────────────────────────────────────────────────── */
+add_filter( 'widget_display_callback', 'nextech_suppress_wc_filter_widgets', 10, 3 );
+function nextech_suppress_wc_filter_widgets( $instance, $widget, $args ) {
+    if ( ! is_shop() && ! is_product_category() ) {
+        return $instance;
+    }
+    $blocked = [
+        'WC_Widget_Price_Filter',
+        'WC_Widget_Product_Categories',
+        'WC_Widget_Layered_Nav',
+        'WC_Widget_Layered_Nav_Filters',
+        'WC_Widget_Product_Tag_Cloud',
+    ];
+    if ( in_array( get_class( $widget ), $blocked, true ) ) {
+        return false;
+    }
+    return $instance;
+}
+
 function custom_account_interface() {
     // Mostrar la interfaz solo en la página principal de "Mi Cuenta"
     if (is_account_page() && !is_wc_endpoint_url()) {
