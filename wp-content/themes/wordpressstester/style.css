@@ -72,13 +72,7 @@ Version: 3.0
  }
 
 
-/*Aumenta texto de categoria de producto en movil dandole un tamaño mas acorde y notorio en pantallas de moviles*/
-p.category.product-cat {
-	font-size: 12px !important;
-	opacity: 1 !important;
-	color: #1e73be;
-	font-weight: 700 !important;
-}
+
 
 /*Aumenta el alto del boton rergistarse para mejor area te toque en movil*/
 .header-button-1 .button {
@@ -167,6 +161,14 @@ h2 {
 
 }
 
+/*Aumenta texto de categoria de producto dandole un tamaño mas acorde y notorio tanto en movil y desktop*/
+p.category.product-cat {
+	font-size: 12px !important;
+	opacity: 1 !important;
+	color: #0073aa;
+	font-weight: 700 !important;
+}
+
 /*reduce el badge de oferta en todas las pantallas*/
 .badge-circle {
     width: 65px !important;
@@ -198,7 +200,7 @@ h2 {
 
 /*resalta la tarjeta al pasar el mouse*/
 .product-small.col:hover .col-inner {
-    border-color: #1e73be !important;
+    border-color: #0073aa !important;
     transform: translateY(-3px) !important;
     transition: transform 0.2s ease, border-color 0.2s ease !important;
 }
