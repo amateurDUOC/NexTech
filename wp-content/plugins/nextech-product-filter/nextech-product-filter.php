@@ -3,7 +3,7 @@
  * Plugin Name:  Nextech Product Filter
  * Plugin URI:   https://rstech.cl
  * Description:  Filtro de productos personalizado con REST API y Vanilla JS. Reemplaza Husky/YITH para mejorar el rendimiento en catálogos grandes (+1000 productos).
- * Version:      1.0.0
+ * Version:      1.0.1
  * Author:       Nextech
  * Text Domain:  nextech-filter
  * Requires PHP: 8.0
@@ -14,12 +14,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'NEXTECH_FILTER_VERSION', '1.0.0' );
+define( 'NEXTECH_FILTER_VERSION', '1.0.1' );
 define( 'NEXTECH_FILTER_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NEXTECH_FILTER_URL', plugin_dir_url( __FILE__ ) );
 
 require_once NEXTECH_FILTER_DIR . 'includes/class-rest-endpoint.php';
 require_once NEXTECH_FILTER_DIR . 'includes/class-filter-widget.php';
+require_once NEXTECH_FILTER_DIR . 'includes/class-admin-page.php';
 
 // ── Índices de BD al activar el plugin ───────────────────────────────────────
 register_activation_hook( __FILE__, 'nextech_filter_create_indexes' );
@@ -128,6 +129,11 @@ function nextech_filter_apply_indexes_action(): void {
     }
 }
 
+// ── Admin Page ────────────────────────────────────────────────────────────────
+if ( is_admin() ) {
+    add_action( 'init', [ 'Nextech_Admin_Page', 'init' ] );
+}
+
 // ── REST API ──────────────────────────────────────────────────────────────────
 add_action( 'rest_api_init', [ 'Nextech_Rest_Endpoint', 'register_routes' ] );
 
@@ -176,6 +182,31 @@ function nextech_filter_enqueue_assets(): void {
             'error'          => __( 'Error al cargar productos. Intenta de nuevo.', 'nextech-filter' ),
         ],
     ] );
+}
+
+// ── Quitar el ordering y paginación nativos de WooCommerce ────────────────────
+// El plugin ya provee su propio selector de orden y paginación — los nativos
+// son redundantes y generan duplicados visuales en páginas con muchos productos.
+add_action( 'init', function () {
+    remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
+    remove_action( 'woocommerce_after_shop_loop',  'woocommerce_pagination',        10 );
+} );
+
+// ── Redirigir "Volver a la tienda" a la última URL con filtros ────────────────
+add_filter( 'woocommerce_return_to_shop_redirect',      'nextech_filter_return_url' );
+add_filter( 'woocommerce_continue_shopping_redirect',   'nextech_filter_return_url' );
+
+function nextech_filter_return_url( string $default ): string {
+    if ( empty( $_COOKIE['nxf_last_url'] ) ) return $default;
+
+    $url = esc_url_raw( urldecode( $_COOKIE['nxf_last_url'] ) );
+
+    // Seguridad: solo aceptar URLs del mismo sitio
+    if ( strpos( $url, home_url() ) === 0 || str_starts_with( $url, '/' ) ) {
+        return $url;
+    }
+
+    return $default;
 }
 
 // ── Invalidar caché cuando cambia un producto ─────────────────────────────────

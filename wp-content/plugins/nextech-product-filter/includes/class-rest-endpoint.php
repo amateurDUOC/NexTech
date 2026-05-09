@@ -107,8 +107,18 @@ class Nextech_Rest_Endpoint {
         $lookup = $wpdb->prefix . 'wc_product_meta_lookup';
 
         $wheres = [
-            "p.post_status = 'publish'",
-            "p.post_type   = 'product'",
+            "p.post_status   = 'publish'",
+            "p.post_password = ''",
+            "p.post_type     = 'product'",
+            // Excluir productos con visibilidad "Oculto" del catálogo
+            "p.ID NOT IN (
+                SELECT tr_v.object_id
+                FROM {$wpdb->term_relationships} tr_v
+                INNER JOIN {$wpdb->term_taxonomy} tt_v ON tt_v.term_taxonomy_id = tr_v.term_taxonomy_id
+                INNER JOIN {$wpdb->terms} t_v          ON t_v.term_id = tt_v.term_id
+                WHERE tt_v.taxonomy = 'product_visibility'
+                  AND t_v.slug      = 'exclude-from-catalog'
+            )",
         ];
 
         // ── Stock y precio via wc_product_meta_lookup (indexado) ──────────
@@ -123,6 +133,13 @@ class Nextech_Rest_Endpoint {
         if ( ! empty( $p['max_precio'] ) ) {
             $wheres[] = $wpdb->prepare( 'wml.max_price <= %f', (float) $p['max_precio'] );
         }
+
+        // ── JOINs de taxonomía (reemplaza subconsultas IN() correlacionadas)
+        //    Cada filtro activo agrega un INNER JOIN independiente con alias
+        //    único, de modo que MySQL puede usar índices en lugar de evaluar
+        //    subqueries por cada fila de wp_posts.
+        $tax_joins   = [];
+        $join_index  = 0;
 
         // ── Categoría — resuelve subcategorías recursivamente ──────────────
         if ( ! empty( $p['categoria'] ) ) {
@@ -141,14 +158,14 @@ class Nextech_Rest_Endpoint {
                 }
                 if ( ! $all_term_ids ) return [];
 
-                $tids     = implode( ',', array_map( 'intval', array_unique( $all_term_ids ) ) );
-                $wheres[] = "p.ID IN (
-                    SELECT DISTINCT tr.object_id
-                    FROM   {$wpdb->term_relationships} tr
-                    JOIN   {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
-                    WHERE  tt.taxonomy = 'product_cat'
-                      AND  tt.term_id  IN ( $tids )
-                )";
+                $tids = implode( ',', array_map( 'intval', array_unique( $all_term_ids ) ) );
+                $i    = $join_index++;
+                $tax_joins[] = "INNER JOIN {$wpdb->term_relationships} tr{$i}
+                        ON  tr{$i}.object_id = p.ID
+                    INNER JOIN {$wpdb->term_taxonomy} tt{$i}
+                        ON  tt{$i}.term_taxonomy_id = tr{$i}.term_taxonomy_id
+                        AND tt{$i}.taxonomy = 'product_cat'
+                        AND tt{$i}.term_id IN ( $tids )";
             }
         }
 
@@ -156,15 +173,16 @@ class Nextech_Rest_Endpoint {
         if ( ! empty( $p['marca'] ) ) {
             $slugs = array_filter( array_map( 'sanitize_title', explode( ',', $p['marca'] ) ) );
             if ( $slugs ) {
-                $in       = "'" . implode( "','", array_map( 'esc_sql', $slugs ) ) . "'";
-                $wheres[] = "p.ID IN (
-                    SELECT DISTINCT tr.object_id
-                    FROM   {$wpdb->term_relationships} tr
-                    JOIN   {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
-                    JOIN   {$wpdb->terms}          t  ON t.term_id          = tt.term_id
-                    WHERE  tt.taxonomy = 'marca'
-                      AND  t.slug IN ( $in )
-                )";
+                $in  = "'" . implode( "','", array_map( 'esc_sql', $slugs ) ) . "'";
+                $i   = $join_index++;
+                $tax_joins[] = "INNER JOIN {$wpdb->term_relationships} tr{$i}
+                        ON  tr{$i}.object_id = p.ID
+                    INNER JOIN {$wpdb->term_taxonomy} tt{$i}
+                        ON  tt{$i}.term_taxonomy_id = tr{$i}.term_taxonomy_id
+                        AND tt{$i}.taxonomy = 'marca'
+                    INNER JOIN {$wpdb->terms} t{$i}
+                        ON  t{$i}.term_id = tt{$i}.term_id
+                        AND t{$i}.slug IN ( $in )";
             }
         }
 
@@ -177,15 +195,15 @@ class Nextech_Rest_Endpoint {
 
             $tax_safe = esc_sql( $key );
             $in       = "'" . implode( "','", array_map( 'esc_sql', $slugs ) ) . "'";
-
-            $wheres[] = "p.ID IN (
-                SELECT DISTINCT tr.object_id
-                FROM   {$wpdb->term_relationships} tr
-                JOIN   {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
-                JOIN   {$wpdb->terms}          t  ON t.term_id          = tt.term_id
-                WHERE  tt.taxonomy = '$tax_safe'
-                  AND  t.slug IN ( $in )
-            )";
+            $i        = $join_index++;
+            $tax_joins[] = "INNER JOIN {$wpdb->term_relationships} tr{$i}
+                    ON  tr{$i}.object_id = p.ID
+                INNER JOIN {$wpdb->term_taxonomy} tt{$i}
+                    ON  tt{$i}.term_taxonomy_id = tr{$i}.term_taxonomy_id
+                    AND tt{$i}.taxonomy = '$tax_safe'
+                INNER JOIN {$wpdb->terms} t{$i}
+                    ON  t{$i}.term_id = tt{$i}.term_id
+                    AND t{$i}.slug IN ( $in )";
         }
 
         // ── Orden ──────────────────────────────────────────────────────────
@@ -197,12 +215,14 @@ class Nextech_Rest_Endpoint {
             case 'popularidad': $order = 'wml.rating_count DESC'; break;
         }
 
-        $where_sql = 'WHERE ' . implode( "\n  AND ", $wheres );
+        $where_sql    = 'WHERE ' . implode( "\n  AND ", $wheres );
+        $tax_join_sql = implode( "\n        ", $tax_joins );
 
         $ids = $wpdb->get_col( "
             SELECT DISTINCT p.ID
             FROM   {$wpdb->posts} p
             $join_wml
+            $tax_join_sql
             $where_sql
             ORDER BY $order
         " );
@@ -231,6 +251,21 @@ class Nextech_Rest_Endpoint {
         $slugs_sin_subcats = [ 'refrigeracion', 'memoria-ram', 'almacenamiento', 'placa-madre-motherboard' ];
         $mostrar_cats      = ! $ctx_term || ! in_array( $ctx_term->slug, $slugs_sin_subcats, true );
         $cat_tree          = $mostrar_cats ? self::build_category_tree( $ctx_term ) : [];
+
+        // ── Sin productos en stock → devolver flag para ocultar el sidebar ───
+        // El JS ocultará el precio y los atributos, y llamará fetchProducts()
+        // para reemplazar el loop nativo de WC con el mensaje "sin resultados".
+        if ( $ctx_term && empty( $product_ids ) ) {
+            $response = [
+                'categorias'    => $cat_tree,   // conserva navegación de categorías
+                'marcas'        => [],
+                'atributos'     => [],
+                'precios'       => [ 'min' => 0, 'max' => 0 ],
+                'sin_productos' => true,
+            ];
+            set_transient( $cache_key, $response, 6 * HOUR_IN_SECONDS );
+            return rest_ensure_response( $response );
+        }
 
         // ── Marcas ───────────────────────────────────────────────────────────
         $marcas = $ctx_term
@@ -276,10 +311,21 @@ class Nextech_Rest_Endpoint {
      */
     private static function build_category_tree( ?WP_Term $ctx_term ): array {
         if ( ! $ctx_term ) {
-            $raices   = get_terms( [ 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => 0 ] );
+            $raices = get_terms( [ 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => 0 ] );
+            if ( is_wp_error( $raices ) || empty( $raices ) ) return [];
+
+            // ── Batch: una sola query para todos los hijos en lugar de 1 por raíz
+            $root_ids = array_map( fn( $c ) => $c->term_id, $raices );
+            $all_hijos = get_terms( [ 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent__in' => $root_ids ] );
+            $hijos_por_padre = [];
+            foreach ( (array) $all_hijos as $hijo ) {
+                $hijos_por_padre[ $hijo->parent ][] = $hijo;
+            }
+            // ────────────────────────────────────────────────────────────────
+
             $cat_tree = [];
             foreach ( (array) $raices as $cat ) {
-                $hijos      = get_terms( [ 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => $cat->term_id ] );
+                $hijos      = $hijos_por_padre[ $cat->term_id ] ?? [];
                 $cat_tree[] = [
                     'id'     => $cat->term_id,
                     'nombre' => $cat->name,
@@ -290,7 +336,7 @@ class Nextech_Rest_Endpoint {
                         'nombre' => $h->name,
                         'slug'   => $h->slug,
                         'count'  => (int) $h->count,
-                    ], (array) $hijos ),
+                    ], $hijos ),
                 ];
             }
             return $cat_tree;
@@ -349,8 +395,17 @@ class Nextech_Rest_Endpoint {
             WHERE tt.taxonomy      = 'product_cat'
               AND tt.term_id       IN ( $ids_sql )
               AND p.post_status    = 'publish'
+              AND p.post_password  = ''
               AND p.post_type      = 'product'
               AND wml.stock_status = 'instock'
+              AND p.ID NOT IN (
+                  SELECT tr_v.object_id
+                  FROM {$wpdb->term_relationships} tr_v
+                  INNER JOIN {$wpdb->term_taxonomy} tt_v ON tt_v.term_taxonomy_id = tr_v.term_taxonomy_id
+                  INNER JOIN {$wpdb->terms} t_v          ON t_v.term_id = tt_v.term_id
+                  WHERE tt_v.taxonomy = 'product_visibility'
+                    AND t_v.slug      = 'exclude-from-catalog'
+              )
         " );
     }
 
@@ -373,14 +428,17 @@ class Nextech_Rest_Endpoint {
             SELECT   t.term_id,
                      t.name,
                      t.slug,
-                     COUNT( DISTINCT tr.object_id ) AS cnt
-            FROM     {$wpdb->terms}            t
-            JOIN     {$wpdb->term_taxonomy}    tt ON tt.term_id          = t.term_id
-            JOIN     {$wpdb->term_relationships} tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
-            WHERE    tt.taxonomy     = '$tax_safe'
-              AND    tr.object_id   IN ( $ids_sql )
+                     COUNT( DISTINCT tr.object_id ) AS cnt,
+                     COALESCE( CAST( tm.meta_value AS UNSIGNED ), 9999 ) AS term_order
+            FROM     {$wpdb->terms}              t
+            JOIN     {$wpdb->term_taxonomy}      tt ON tt.term_id            = t.term_id
+            JOIN     {$wpdb->term_relationships} tr ON tr.term_taxonomy_id   = tt.term_taxonomy_id
+            LEFT JOIN {$wpdb->termmeta}          tm ON tm.term_id            = t.term_id
+                                                   AND tm.meta_key           = 'order'
+            WHERE    tt.taxonomy   = '$tax_safe'
+              AND    tr.object_id IN ( $ids_sql )
             GROUP BY t.term_id
-            ORDER BY t.name
+            ORDER BY term_order ASC, t.name ASC
         " );
 
         if ( empty( $rows ) ) return [];
@@ -411,9 +469,16 @@ class Nextech_Rest_Endpoint {
 
         // Busca config exacta; si no existe, sube por los ancestros hasta encontrar una.
         // Esto permite que pc-gamer-rtx-4060 herede de pc-gamer sin entrada propia.
+        // Admin UI config (wp_options) takes priority over the PHP hardcoded config.
         if ( $cat_slug ) {
             $node = get_term_by( 'slug', $cat_slug, 'product_cat' );
             while ( $node && ! is_wp_error( $node ) ) {
+                // Check Admin UI options first (takes priority over PHP config)
+                $saved = Nextech_Admin_Page::get_saved_config( $node->slug );
+                if ( $saved !== null ) {
+                    return self::build_atributos_from_config( $saved, $product_ids );
+                }
+                // Then check hardcoded PHP config
                 if ( isset( $config[ $node->slug ] ) ) {
                     return self::build_atributos_from_config( $config[ $node->slug ], $product_ids );
                 }
@@ -494,7 +559,12 @@ class Nextech_Rest_Endpoint {
      * grupo: true → acordeón padre que agrupa varios sub-filtros
      * (sin grupo)  → atributo simple con sus checkboxes
      */
-    private static function attr_config(): array {
+    /** Public alias used by Nextech_Admin_Page to read the PHP hardcoded config. */
+    public static function get_attr_config_public(): array {
+        return self::attr_config();
+    }
+
+    public static function attr_config(): array {
         // ── Bloques reutilizables ────────────────────────────────────────
         $gpu = [
             'nombre' => 'Tarjeta de Video', 'grupo' => true,
@@ -553,6 +623,17 @@ class Nextech_Rest_Endpoint {
             ],
         ];
 
+        // Atributos específicos de monitores
+        $monitor = [
+            'nombre' => 'Pantalla', 'grupo' => true,
+            'hijos'  => [
+                [ 'nombre' => 'Tamaño',       'slug' => 'pa_tamano-monitor' ],
+                [ 'nombre' => 'Resolución',   'slug' => 'pa_resolucion'     ],
+                [ 'nombre' => 'Panel',        'slug' => 'pa_panel-monitor'  ],
+                [ 'nombre' => 'Frecuencia',   'slug' => 'pa_hz'             ],
+            ],
+        ];
+
         // ── Mapa: slug de categoría → atributos a mostrar ────────────────
         // Las subcategorías heredan automáticamente del padre — no necesitan
         // entrada propia. Ejemplo: pc-gamer-rtx-4060 hereda de pc-gamer.
@@ -588,17 +669,13 @@ class Nextech_Rest_Endpoint {
             'gabinetes-pc-armado'       => [ $case           ],
 
             /* ── Notebooks ────────────────────────────────────────────── */
-            'notebook-gamer' => [ $procesador, $gpu_notebook ],
+            'notebook-gamer' => [ $procesador, $gpu_notebook, $ram, $almacenamiento ],
 
-            /* ── Monitores ────────────────────────────────────────────── *
-             *  Los productos aún no tienen pa_* válidos (pa_tamano tiene
-             *  valores de ventiladores). Se deja vacío para suprimir el
-             *  fallback hasta que se creen atributos propios de monitor.
-             * ─────────────────────────────────────────────────────────── */
-            'monitores'        => [],
-            'monitores-galax'  => [],
-            'hall-of-fame-hof' => [],
-            'newgen'           => [],
+            /* ── Monitores ────────────────────────────────────────────── */
+            'monitores'        => [ $monitor ],
+            'monitores-galax'  => [ $monitor ],
+            'hall-of-fame-hof' => [ $monitor ],
+            'newgen'           => [ $monitor ],
 
             /* ── Periféricos ──────────────────────────────────────────── */
             'audifonos-y-perifericos' => [ $color_item ],

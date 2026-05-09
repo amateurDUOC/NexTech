@@ -10,6 +10,35 @@ function load_jquery_in_wordpress() {
 add_action('wp_enqueue_scripts', 'load_jquery_in_wordpress');
 
 
+/* SELECT2 — Agregado el 2026-04-23
+   ANTES: Select2 se cargaba como <link> y <script> inline dentro de lioren_facturacion_field()
+   PROBLEMA: Carga directa desde CDN externo sin pasar por WordPress:
+     - Sin versioning ni cache control de WordPress
+     - Si el CDN falla o está lento, el checkout se rompe visualmente
+     - WordPress no puede minificar ni concatenar estos assets
+     - Se cargaba en TODAS las visitas al checkout, incluso sin factura
+   SOLUCIÓN: Registrado correctamente via wp_enqueue con is_checkout() para cargar
+   SOLO en la página de checkout, no en todo el sitio.
+   REVERTIR: Eliminar esta función y restaurar las líneas <link> y <script> en lioren_facturacion_field() */
+function nextech_enqueue_select2() {
+    if ( ! is_checkout() ) return;
+    wp_enqueue_style(
+        'select2',
+        'https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css',
+        [],
+        '4.0.13'
+    );
+    wp_enqueue_script(
+        'select2',
+        'https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js',
+        ['jquery'],
+        '4.0.13',
+        true
+    );
+}
+add_action( 'wp_enqueue_scripts', 'nextech_enqueue_select2' );
+
+
 function remove_target_blank_with_js() {
     ?>
     <script>
@@ -27,7 +56,123 @@ add_action('wp_footer', 'remove_target_blank_with_js');
 
 add_action('woocommerce_account_content', 'custom_account_interface', 5);
 
-define('BASE_URL', 'https://rstech.cl');
+/* BASE_URL — Corregido el 2026-04-23
+   ANTES: URL hardcodeada a rstech.cl — al cerrar sesión en local redirigía
+   a producción porque todos los links usaban esta constante fija.
+   SOLUCIÓN: home_url() retorna automáticamente la URL correcta según el
+   entorno — local en Local by Flywheel, rstech.cl en producción.
+   REVERTIR: define('BASE_URL', 'https://rstech.cl'); */
+define('BASE_URL', home_url());
+
+
+/* ── Carrito: Quitar botones duplicados de los hooks de WooCommerce ──────────
+   Flatsome inyecta su "Continue shopping" en woocommerce_cart_actions (p.10).
+   El plugin de cotización inyecta su botón en el mismo hook (p.20).
+   Ambos se renderizan directamente en cart.php (.nxt-cart-actions) para
+   tener control total sobre su posición, por lo que los removemos aquí.
+   ─────────────────────────────────────────────────────────────────────────── */
+add_action( 'wp', function () {
+    // Botón "Continue shopping" de Flatsome — se renderiza en .nxt-cart-actions
+    remove_action( 'woocommerce_cart_actions', 'flatsome_continue_shopping', 10 );
+    // Botón de cotización — ídem
+    remove_action( 'woocommerce_cart_actions', 'ncc_boton_cotizacion', 20 );
+} );
+
+/* ── Footer: Logos Webpay + Linkify junto a íconos de pago ──────────────────
+   Flatsome inyecta [ux_payment_icons] en flatsome_absolute_footer_secondary (p.10).
+   Agregamos los logos personalizados a continuación (p.11).
+   ─────────────────────────────────────────────────────────────────────────── */
+add_action( 'flatsome_absolute_footer_secondary', function () {
+    $uploads      = wp_upload_dir();
+    $base         = $uploads['baseurl'];
+    $webpay       = $base . '/2022/06/webpayyy.png';
+    $linkify      = $base . '/2022/06/linkiii.png';
+    $mercado_pago = $base . '/2026/05/mercado_pago.png';
+    ?>
+    <div class="nxt-footer-custom-logos">
+        <img src="<?php echo esc_url( $webpay ); ?>"       alt="Webpay Plus"  class="nxt-footer-logo" />
+        <img src="<?php echo esc_url( $linkify ); ?>"      alt="Linkify"      class="nxt-footer-logo" />
+        <span class="nxt-footer-mp-wrap">
+            <img src="<?php echo esc_url( $mercado_pago ); ?>" alt="Mercado Pago" class="nxt-footer-logo nxt-footer-logo--mp" />
+            <span class="nxt-footer-mp-text">Mercado Pago</span>
+        </span>
+    </div>
+    <?php
+}, 11 );
+
+/* ── Carrito: Auto-actualizar al cambiar cantidad + ocultar botón ────────────
+   WooCommerce no auto-actualiza el carrito al cambiar el input qty.
+   Detectamos el evento "change" en los inputs de cantidad y disparamos
+   el click del botón update_cart con un debounce de 600ms.
+   El botón se oculta con CSS (no se elimina del DOM para que el trigger funcione).
+   ─────────────────────────────────────────────────────────────────────────── */
+add_action( 'wp_footer', 'nextech_cart_scripts' );
+function nextech_cart_scripts() {
+    if ( ! is_cart() ) return;
+    ?>
+    <script>
+    ( function ( $ ) {
+
+        /* ── Auto-actualizar cantidad con debounce ── */
+        var timer;
+        $( document ).on( 'change', '.woocommerce-cart-form .qty', function () {
+            clearTimeout( timer );
+            timer = setTimeout( function () {
+                $( '[name="update_cart"]' ).prop( 'disabled', false ).trigger( 'click' );
+            }, 600 );
+        } );
+
+        /* ── Toggle cupón ── */
+        document.addEventListener( 'DOMContentLoaded', function () {
+            var btn  = document.getElementById( 'nxt-coupon-toggle' );
+            var form = document.getElementById( 'nxt-coupon-form' );
+            if ( ! btn || ! form ) return;
+
+            btn.addEventListener( 'click', function () {
+                var expanded = btn.getAttribute( 'aria-expanded' ) === 'true';
+                if ( expanded ) {
+                    form.setAttribute( 'hidden', '' );
+                    btn.setAttribute( 'aria-expanded', 'false' );
+                } else {
+                    form.removeAttribute( 'hidden' );
+                    btn.setAttribute( 'aria-expanded', 'true' );
+                    // Enfocar el input al abrir
+                    var input = form.querySelector( 'input[name="coupon_code"]' );
+                    if ( input ) setTimeout( function(){ input.focus(); }, 50 );
+                }
+            } );
+        } );
+
+    } )( jQuery );
+    </script>
+    <?php
+}
+
+
+/* ── Carrito: Suprimir widgets nativos de WooCommerce en tienda/categorías ───
+   Los widgets WC_Widget_Price_Filter, WC_Widget_Product_Categories y
+   WC_Widget_Layered_Nav aparecen en la barra lateral de la tienda aunque
+   ya existe el nextech-product-filter. Este filtro los bloquea en
+   is_shop() e is_product_category() sin necesidad de eliminarlos del
+   panel de Appearance → Widgets.
+   ─────────────────────────────────────────────────────────────────────────── */
+add_filter( 'widget_display_callback', 'nextech_suppress_wc_filter_widgets', 10, 3 );
+function nextech_suppress_wc_filter_widgets( $instance, $widget, $args ) {
+    if ( ! is_shop() && ! is_product_category() ) {
+        return $instance;
+    }
+    $blocked = [
+        'WC_Widget_Price_Filter',
+        'WC_Widget_Product_Categories',
+        'WC_Widget_Layered_Nav',
+        'WC_Widget_Layered_Nav_Filters',
+        'WC_Widget_Product_Tag_Cloud',
+    ];
+    if ( in_array( get_class( $widget ), $blocked, true ) ) {
+        return false;
+    }
+    return $instance;
+}
 
 function custom_account_interface() {
     // Mostrar la interfaz solo en la página principal de "Mi Cuenta"
@@ -68,10 +213,8 @@ function custom_account_interface() {
 add_action('woocommerce_after_order_notes', 'lioren_facturacion_field');
 
 function lioren_facturacion_field($checkout) {
+    // Select2 cargado via nextech_enqueue_select2() — ver comentario al inicio del archivo
     ?>
-    <!-- Incluir Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 
     <style>
         /* Estilo del botón */
@@ -1270,6 +1413,255 @@ add_action('init', function () {
         vaciar_carrito_woocommerce();
     }
 });
+
+/* ============================================================
+   HEADER — Ícono estrella de calificaciones junto a Follow Icons
+   Inyecta una estrella dorada al lado de los iconos sociales.
+   Actualizado: 2026-05-06
+   ============================================================ */
+add_action('wp_footer', function () {
+    $reviews_url = 'https://www.solotodo.cl/stores/2009/ratings';
+    ?>
+    <style>
+    .nextech-star-review {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        margin-left: 6px;
+        opacity: 0.85;
+        transition: opacity 0.2s, transform 0.18s;
+        vertical-align: middle;
+        line-height: 1;
+    }
+    .nextech-star-review:hover {
+        opacity: 1;
+        transform: scale(1.15);
+    }
+    .nextech-star-review svg {
+        display: block;
+    }
+    </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var container = document.querySelector(
+            '.header-social-icons, .follow-icons, [class*="social-icons"], [class*="follow"]'
+        );
+        if (!container) return;
+
+        var link = document.createElement('a');
+        link.href      = <?php echo json_encode(esc_url($reviews_url)); ?>;
+        link.target    = '_blank';
+        link.rel       = 'noopener';
+        link.title     = 'Ver nuestras calificaciones';
+        link.className = 'nextech-star-review';
+        link.innerHTML =
+            '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"' +
+            ' fill="#ffffff" stroke="#ffffff" stroke-width="0.3" stroke-linejoin="round">' +
+            '<polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>' +
+            '</svg>';
+
+        container.appendChild(link);
+    });
+    </script>
+    <?php
+}, 20);
+
+
+/* REGISTRO — Campo "Repetir contraseña" — Agregado el 2026-04-23
+   ANTES: El formulario de registro de WooCommerce solo tenía un campo de contraseña.
+   PROBLEMA: Sin confirmación de contraseña, el usuario puede cometer errores al escribirla
+   y no darse cuenta hasta intentar iniciar sesión.
+   SOLUCIÓN: Se agregan tres hooks:
+     1. woocommerce_register_form — agrega el campo visual al formulario
+     2. woocommerce_registration_errors — valida que ambas contraseñas coincidan
+     3. woocommerce_new_customer_data — no es necesario guardar, WC ya guarda la contraseña
+   REVERTIR: Eliminar las tres funciones y sus add_action/add_filter. */
+
+// 1. Agregar el campo al formulario
+add_action( 'woocommerce_register_form', 'nextech_registro_campo_repetir_password' );
+function nextech_registro_campo_repetir_password() {
+    ?>
+    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+        <label for="password2"><?php esc_html_e( 'Repetir contraseña', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+        <input type="password"
+               class="woocommerce-Input woocommerce-Input--password input-text"
+               name="password2"
+               id="password2"
+               autocomplete="new-password"
+               value="" />
+    </p>
+    <?php
+}
+
+// 2. Validar que ambas contraseñas coincidan
+add_filter( 'woocommerce_registration_errors', 'nextech_validar_repetir_password', 10, 3 );
+function nextech_validar_repetir_password( $errors, $username, $email ) {
+    $password1 = isset( $_POST['password'] )  ? $_POST['password']  : '';
+    $password2 = isset( $_POST['password2'] ) ? $_POST['password2'] : '';
+
+    if ( empty( $password2 ) ) {
+        $errors->add( 'password2_error', __( 'Por favor repite tu contraseña.', 'woocommerce' ) );
+    } elseif ( $password1 !== $password2 ) {
+        $errors->add( 'password2_error', __( 'Las contraseñas no coinciden.', 'woocommerce' ) );
+    }
+
+    return $errors;
+}
+
+/* ============================================================
+   FOOTER — Widgets "Horarios" y "¿Quiénes somos?" colapsables
+   - Ambos tienen botón toggle con flecha
+   - "¿Quiénes somos?" expande el texto hacia la DERECHA
+     como un panel flotante anclado al botón
+   - "Horarios" expande hacia abajo (es info corta y directa)
+   Actualizado: 2026-05-06
+   ============================================================ */
+add_action('wp_footer', function () { ?>
+<style>
+
+/* ══════════════════════════════════════════════════════════════
+   TOGGLE GENÉRICO — botón compartido por Horarios y ¿Quiénes?
+   ══════════════════════════════════════════════════════════════ */
+.nextech-footer-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.30);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    white-space: nowrap;
+}
+.nextech-footer-toggle:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.55);
+}
+.nextech-footer-toggle::after {
+    content: '▾';
+    font-size: 1rem;
+    transition: transform 0.25s ease;
+    display: inline-block;
+}
+.nextech-footer-toggle.open::after {
+    transform: rotate(180deg);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ¿QUIÉNES SOMOS? — expande hacia la DERECHA como panel flotante
+   ══════════════════════════════════════════════════════════════ */
+.nextech-quienes-wrap {
+    position: relative;
+    display: inline-block;
+}
+/* Panel flotante que aparece a la derecha del botón */
+.nextech-quienes-body {
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-8px);
+    width: 280px;
+    background: #1a1a1a;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease, transform 0.28s ease;
+    z-index: 999;
+    text-align: left;
+}
+/* Triángulo decorativo apuntando al botón (izquierda del panel) */
+.nextech-quienes-body::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 7px 7px 7px 0;
+    border-style: solid;
+    border-color: transparent rgba(255,255,255,0.15) transparent transparent;
+}
+.nextech-quienes-body::after {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 6px 6px 6px 0;
+    border-style: solid;
+    border-color: transparent #1a1a1a transparent transparent;
+}
+.nextech-quienes-body.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) translateX(0);
+}
+.nextech-quienes-body p {
+    margin: 0 0 8px;
+    line-height: 1.6;
+    font-size: 0.88rem;
+    color: #ddd;
+}
+.nextech-quienes-body p:last-child { margin-bottom: 0; }
+
+/* En móvil el panel cae hacia abajo para no salirse de pantalla */
+@media (max-width: 768px) {
+    .nextech-quienes-body {
+        position: static !important;
+        width: 100% !important;
+        transform: none !important;
+        margin-top: 10px;
+        box-shadow: none;
+        border-color: rgba(255,255,255,0.12);
+        /* Ocultar completamente en lugar de solo opacity para no ocupar espacio */
+        display: none;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    .nextech-quienes-body.open {
+        display: block !important;
+        transform: none !important;
+    }
+    .nextech-quienes-body::before,
+    .nextech-quienes-body::after { display: none !important; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    /* Toggle genérico: funciona para Horarios y ¿Quiénes somos? */
+    document.querySelectorAll('.nextech-footer-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var body = document.getElementById(btn.dataset.target);
+            if (!body) return;
+            var isOpen = body.classList.contains('open');
+            body.classList.toggle('open', !isOpen);
+            btn.classList.toggle('open', !isOpen);
+            btn.setAttribute('aria-expanded', String(!isOpen));
+        });
+    });
+
+    /* Cierra el panel de ¿Quiénes somos? al hacer click fuera */
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.nextech-quienes-wrap')) {
+            var body = document.getElementById('quienes-body');
+            var btn  = document.querySelector('[data-target="quienes-body"]');
+            if (body)  body.classList.remove('open');
+            if (btn)   { btn.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+        }
+    });
+});
+</script>
+<?php }, 20);
 
 
 add_action( 'woocommerce_account_content', 'custom_return_to_account_button', 20 );

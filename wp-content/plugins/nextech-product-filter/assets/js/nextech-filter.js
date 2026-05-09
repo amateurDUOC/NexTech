@@ -46,11 +46,9 @@
         if ( ! $( '#nextech-filter' ) ) return;
 
         readUrlParams();
-        loadFilterOptions();
+        loadFilterOptions();   // ← fetchProducts() se llama desde dentro, DESPUÉS de construir el sidebar
         bindControls();
         bindAccordions();
-
-        if ( hasActiveFilters() ) fetchProducts();
     }
 
     // ── URL params ────────────────────────────────────────────────────────────
@@ -88,6 +86,9 @@
 
         const qs = p.toString();
         history.pushState( { ...state }, '', qs ? '?' + qs : window.location.pathname );
+
+        // Guarda la URL filtrada para que el botón "Volver a la tienda" la recuerde
+        document.cookie = 'nxf_last_url=' + encodeURIComponent( window.location.pathname + ( qs ? '?' + qs : '' ) ) + '; path=/; SameSite=Lax; max-age=3600';
     }
 
     function hasActiveFilters() {
@@ -118,10 +119,29 @@
             if ( ! res.ok ) return;
             const data = await res.json();
 
+            // ── Sin productos en stock en esta categoría ──────────────────────
+            // Ocultar sección de precio y todos los filtros. Aún se muestran
+            // las categorías hermanas/hijas para facilitar la navegación.
+            if ( data.sin_productos ) {
+                $( '#nxf-precio-section' )?.setAttribute( 'hidden', '' );
+                buildCategorias( data.categorias || [] );
+                fetchProducts();   // muestra "No se encontraron productos" en el grid
+                return;
+            }
+
             buildMarcas( data.marcas     || [] );
             buildCategorias( data.categorias || [] );
-            buildAtributos( data.atributos   || [] );
+            buildAtributos( data.atributos   || [] );   // ← crea .nxf-attr-section en el DOM
             restoreFromState();
+
+            // ── fetchProducts() se llama AQUÍ, con el sidebar ya construido ──
+            // Así hideSidebarFilters() puede encontrar y ocultar los elementos
+            // dinámicos (.nxf-attr-section, .nxf-attr-grupo) si retorna 0 resultados.
+            // • contexto activo → reemplaza loop nativo WC con solo productos en stock
+            // • filtros activos → aplica selecciones del usuario (URL params)
+            if ( contexto || hasActiveFilters() ) {
+                fetchProducts();
+            }
 
         } catch ( e ) {
             console.warn( '[NxtFilter] No se pudo cargar /filtros:', e );
@@ -537,11 +557,24 @@
 
         if ( ! data.html || ! data.total ) {
             g.innerHTML = `<p class="nxf-no-results">${ NxtFilter.i18n.sin_resultados }</p>`;
+
+            // Sin filtros activos + 0 resultados = no hay nada que filtrar.
+            // Ocultar precio y atributos para no mostrar opciones vacías.
+            if ( ! hasActiveFilters() ) {
+                hideSidebarFilters();
+            }
             return;
         }
 
         g.innerHTML = data.html;
         document.dispatchEvent( new CustomEvent( 'nextech_grid_updated', { detail: { data, grid: g } } ) );
+    }
+
+    /** Oculta los paneles de filtro (precio + atributos dinámicos) */
+    function hideSidebarFilters() {
+        $( '#nxf-precio-section' )?.setAttribute( 'hidden', '' );
+        document.querySelectorAll( '#nextech-filter .nxf-attr-section, #nextech-filter .nxf-attr-grupo' )
+            .forEach( el => el.setAttribute( 'hidden', '' ) );
     }
 
     function renderPagination( data ) {

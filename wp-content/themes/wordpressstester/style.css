@@ -273,8 +273,597 @@ Version: 3.0
 	  display: block;
 	  margin: 0 auto;  /* Centrar la imagen si es necesario */
   }
-  
-  
-  
-  
-  
+
+
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TIENDA — Ocultar widgets nativos de WooCommerce (precio, categorías)
+   La página de tienda usa el nextech-product-filter exclusivamente.
+   Ocultamos por body class (más fiable que widget_display_callback en Flatsome).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.woocommerce-shop .widget_price_filter,
+body.woocommerce-shop .widget_product_categories,
+body.woocommerce-shop .widget_layered_nav,
+body.woocommerce-shop .widget_layered_nav_filters,
+body.tax-product_cat .widget_price_filter,
+body.tax-product_cat .widget_product_categories,
+body.tax-product_cat .widget_layered_nav,
+body.tax-product_cat .widget_layered_nav_filters {
+    display: none !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARRITO — Mejoras visuales
+   Referencia: diseño RS TECH (tabla limpia, tipografía clara, colores marca)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Contenedor general del carrito ─────────────────────────────────────── */
+.woocommerce-cart-form {
+    margin-bottom: 32px !important;
+}
+
+.cart-collaterals {
+    margin-top: 8px !important;
+}
+.woocommerce-cart-form .actions .button[name="update_cart"] {
+    display: none !important;
+}
+
+/* ── Layout custom del carrito (nxt-cart-page) ──────────────────────────── */
+
+.nxt-cart-page {
+    max-width: 100%;
+    padding: 0 !important;
+}
+
+/* Dos columnas: tabla (izq) + totales (der) */
+.nxt-cart-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+}
+
+/* Columna izquierda: crece para ocupar el espacio restante */
+.nxt-cart-left {
+    flex: 1;
+    min-width: 0; /* evita que el flex desborde — NO overflow:hidden para no cortar la barra de componentes */
+}
+
+/* Scroll horizontal solo si la tabla es más ancha que el contenedor */
+.nxt-cart-left .cart-wrapper {
+    overflow-x: auto;
+}
+
+/* Columna derecha: ancho fijo, sticky */
+.nxt-cart-right {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 20px;
+}
+
+/* ── Botones de acción debajo de la tabla — en fila horizontal ──────────── */
+.nxt-cart-actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* Asegurar que los botones dentro de .nxt-cart-actions sean flex inline */
+.nxt-cart-actions .button,
+.nxt-cart-actions a.button,
+.nxt-cart-actions button {
+    display: inline-flex !important;
+    align-items: center !important;
+    width: auto !important;
+    flex-shrink: 0;
+}
+
+/* Botón "Seguir comprando" — estilo consistente con Flatsome */
+.nxt-btn-continue {
+    padding: 10px 20px !important;
+    border: 2px solid #1a1a2e !important;
+    color: #1a1a2e !important;
+    background: transparent !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: background 0.2s, color 0.2s !important;
+}
+
+.nxt-btn-continue:hover {
+    background: #1a1a2e !important;
+    color: #fff !important;
+}
+
+/* Si Flatsome envuelve el link en <p>, lo hacemos transparente al flex */
+.nxt-cart-actions > p {
+    margin: 0 !important;
+    display: contents;
+}
+
+/* ── Logos Webpay + Linkify en footer inferior ──────────────────────────── */
+.nxt-footer-custom-logos {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+.nxt-footer-custom-logos .nxt-footer-logo {
+    height: 45px;
+    width: auto;
+    display: inline-block;
+    vertical-align: middle;
+    opacity: 0.85;
+    filter: brightness(0) invert(1); /* los vuelve blancos igual que Visa/MC */
+    transition: opacity 0.2s;
+}
+
+.nxt-footer-custom-logos .nxt-footer-logo:hover {
+    opacity: 1;
+}
+
+/* Mercado Pago: logo más grande + texto al lado */
+.nxt-footer-mp-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.nxt-footer-custom-logos .nxt-footer-logo--mp {
+    height: 28px;
+}
+
+.nxt-footer-mp-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    opacity: 0.85;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+/* ── Sección de cupón con toggle ────────────────────────────────────────── */
+.nxt-coupon-section {
+    margin-top: 14px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 12px;
+}
+
+/* Botón disparador del cupón */
+.nxt-coupon-toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    color: #555;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: color 0.2s;
+    width: 100%;
+    text-align: left;
+}
+
+.nxt-coupon-toggle:hover {
+    color: #1a1a2e;
+}
+
+.nxt-coupon-toggle svg {
+    color: #c62828;
+    flex-shrink: 0;
+}
+
+.nxt-coupon-arrow {
+    margin-left: auto;
+    font-size: 11px;
+    transition: transform 0.25s ease;
+    display: inline-block;
+}
+
+.nxt-coupon-toggle[aria-expanded="true"] .nxt-coupon-arrow {
+    transform: rotate(180deg);
+}
+
+/* Formulario de cupón — oculto por defecto (usa atributo hidden) */
+.nxt-coupon-form {
+    margin-top: 10px;
+    animation: nxt-slide-down 0.2s ease;
+}
+
+@keyframes nxt-slide-down {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.nxt-coupon-form .coupon {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nxt-coupon-form .coupon input {
+    width: 100% !important;
+    height: 40px !important;
+    padding: 0 12px !important;
+    border: 1.5px solid #ddd !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.18s;
+}
+
+.nxt-coupon-form .coupon input:focus {
+    border-color: #1a1a2e !important;
+    outline: none !important;
+}
+
+.nxt-coupon-form .coupon .button {
+    width: 100% !important;
+    height: 38px !important;
+    padding: 0 !important;
+    background: #1a1a2e !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background 0.2s !important;
+}
+
+.nxt-coupon-form .coupon .button:hover {
+    background: #2e2e50 !important;
+}
+
+/* Responsive: columnas apiladas en pantallas pequeñas */
+@media (max-width: 900px) {
+    .nxt-cart-layout {
+        flex-direction: column;
+    }
+    .nxt-cart-right {
+        width: 100%;
+        position: static;
+    }
+}
+
+/* ── Tabla del carrito ──────────────────────────────────────────────────── */
+.woocommerce-cart-form table.shop_table {
+    border: 1px solid #e8e8e8 !important;
+    border-radius: 8px !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    width: 100% !important;
+    margin-bottom: 32px !important;
+}
+
+/* Anchos mínimos por columna — sin table-layout: fixed para que el nombre se expanda */
+.woocommerce-cart-form table.shop_table .product-remove    { width: 36px !important;  }
+.woocommerce-cart-form table.shop_table .product-thumbnail { width: 200px !important; }
+.woocommerce-cart-form table.shop_table .product-price     { width: 95px !important;  white-space: nowrap; }
+.woocommerce-cart-form table.shop_table .product-quantity  { width: 95px !important;  }
+.woocommerce-cart-form table.shop_table .product-subtotal  { width: 95px !important;  white-space: nowrap; }
+
+/* Cabecera de la tabla */
+.woocommerce-cart-form table.shop_table thead th {
+    background: #1a1a2e !important;
+    color: #fff !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    padding: 16px 18px !important;
+    border: none !important;
+}
+
+/* Filas del cuerpo */
+.woocommerce-cart-form table.shop_table tbody tr td {
+    padding: 18px 18px !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    border-right: none !important;
+    font-size: 14px !important;
+    color: #222 !important;
+}
+
+/* Filas alternadas */
+.woocommerce-cart-form table.shop_table tbody tr:nth-child(even) td {
+    background-color: #fafbff !important;
+}
+
+/* Hover en fila */
+.woocommerce-cart-form table.shop_table tbody tr:hover td {
+    background-color: #f3f6ff !important;
+    transition: background-color 0.15s ease;
+}
+
+/* Última fila sin borde inferior */
+.woocommerce-cart-form table.shop_table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* ── Imagen del producto ────────────────────────────────────────────────── */
+.woocommerce-cart-form table.shop_table .product-thumbnail img {
+    width: 140px !important;
+    height: 140px !important;
+    object-fit: contain !important;
+    border-radius: 6px !important;
+    border: 1px solid #e8e8e8 !important;
+    padding: 6px !important;
+    background: #fff !important;
+    display: block !important;
+}
+
+/* ── Nombre del producto ────────────────────────────────────────────────── */
+.woocommerce-cart-form table.shop_table .product-name a {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #1a1a2e !important;
+    text-decoration: none !important;
+    line-height: 1.5 !important;
+    display: block !important;
+    word-break: break-word !important;
+}
+
+.woocommerce-cart-form table.shop_table .product-name a:hover {
+    color: #c62828 !important;
+}
+
+/* Mobile product price (Flatsome) — ocultar en desktop */
+.woocommerce-cart-form table.shop_table .mobile-product-price {
+    display: none !important;
+}
+
+/* Variaciones / meta debajo del nombre */
+.woocommerce-cart-form table.shop_table .product-name dl.variation {
+    font-size: 12px !important;
+    color: #888 !important;
+    margin-top: 4px !important;
+}
+
+/* ── Precio unitario ────────────────────────────────────────────────────── */
+.woocommerce-cart-form table.shop_table .product-price,
+.woocommerce-cart-form table.shop_table .product-subtotal {
+    text-align: right !important;
+}
+.woocommerce-cart-form table.shop_table .product-price .amount,
+.woocommerce-cart-form table.shop_table .product-subtotal .amount {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #1a1a2e !important;
+    white-space: nowrap !important;
+}
+
+/* ── Input cantidad ─────────────────────────────────────────────────────── */
+.woocommerce-cart-form table.shop_table .product-quantity .qty {
+    width: 60px !important;
+    height: 36px !important;
+    border: 1.5px solid #ddd !important;
+    border-radius: 6px !important;
+    text-align: center !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #1a1a2e !important;
+    background: #fff !important;
+    padding: 0 6px !important;
+    transition: border-color 0.18s !important;
+}
+
+.woocommerce-cart-form table.shop_table .product-quantity .qty:focus {
+    border-color: #c62828 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(198,40,40,0.1) !important;
+}
+
+/* ── Botón eliminar (×) ─────────────────────────────────────────────────── */
+.woocommerce-cart-form table.shop_table .product-remove a.remove {
+    color: #bbb !important;
+    font-size: 20px !important;
+    font-weight: 300 !important;
+    line-height: 1 !important;
+    transition: color 0.18s !important;
+    border-radius: 50% !important;
+    width: 26px !important;
+    height: 26px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+}
+
+.woocommerce-cart-form table.shop_table .product-remove a.remove:hover {
+    color: #fff !important;
+    background: #c62828 !important;
+}
+
+/* ── Acciones del carrito (cupón + botones) ─────────────────────────────── */
+.woocommerce-cart-form .actions {
+    padding: 24px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+    margin-top: 24px !important;
+    border-top: 1px solid #e8e8e8 !important;
+}
+
+.woocommerce-cart-form .coupon {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    flex: 1 !important;
+}
+
+.woocommerce-cart-form .coupon #coupon_code {
+    height: 46px !important;
+    padding: 0 16px !important;
+    border: 1.5px solid #ddd !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    color: #222 !important;
+    width: 200px !important;
+    transition: border-color 0.18s !important;
+}
+
+.woocommerce-cart-form .coupon #coupon_code:focus {
+    border-color: #1a1a2e !important;
+    outline: none !important;
+}
+
+.woocommerce-cart-form .coupon .button {
+    height: 46px !important;
+    padding: 0 20px !important;
+    background: #1a1a2e !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background 0.2s !important;
+}
+
+.woocommerce-cart-form .coupon .button:hover {
+    background: #2e2e50 !important;
+}
+
+/* ── Resumen del carrito (totales) ──────────────────────────────────────── */
+.cart-collaterals .cart_totals {
+    background: #fff !important;
+    border: 1px solid #e8e8e8 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+    /* sticky gestionado por .nxt-cart-right */
+}
+
+.cart-collaterals .cart_totals h2 {
+    background: #1a1a2e !important;
+    color: #fff !important;
+    margin: 0 !important;
+    padding: 12px 16px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+}
+
+.cart-collaterals .cart_totals table {
+    border: none !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+}
+
+.cart-collaterals .cart_totals table th,
+.cart-collaterals .cart_totals table td {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    font-size: 14px !important;
+    vertical-align: middle !important;
+}
+
+.cart-collaterals .cart_totals table th {
+    font-weight: 700 !important;
+    color: #555 !important;
+    width: 40% !important;
+    font-size: 14px !important;
+}
+
+.cart-collaterals .cart_totals table .order-total th,
+.cart-collaterals .cart_totals table .order-total td {
+    background: #f8f9ff !important;
+    border-bottom: none !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    color: #1a1a2e !important;
+    padding: 14px 16px !important;
+}
+
+.cart-collaterals .cart_totals table .order-total td .amount {
+    color: #c62828 !important;
+    font-size: 18px !important;
+}
+
+/* Botón "Proceder al pago" */
+.cart-collaterals .wc-proceed-to-checkout .checkout-button {
+    background: #c62828 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    padding: 18px 24px !important;
+    width: 100% !important;
+    text-align: center !important;
+    transition: background 0.2s, transform 0.15s !important;
+    letter-spacing: 0.3px !important;
+    margin: 24px 0 0 0 !important;
+}
+
+.cart-collaterals .wc-proceed-to-checkout .checkout-button:hover {
+    background: #b71c1c !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .woocommerce-cart-form table.shop_table {
+        margin-bottom: 24px !important;
+    }
+
+    .woocommerce-cart-form table.shop_table .product-thumbnail img {
+        width: 56px !important;
+        height: 56px !important;
+    }
+    
+    .woocommerce-cart-form table.shop_table thead th {
+        padding: 14px 14px !important;
+        font-size: 11px !important;
+    }
+    
+    .woocommerce-cart-form table.shop_table tbody tr td {
+        padding: 16px 14px !important;
+    }
+    
+    .woocommerce-cart-form table.shop_table .product-name a {
+        font-size: 13px !important;
+    }
+    
+    .woocommerce-cart-form .actions {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .woocommerce-cart-form .coupon {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+    
+    .woocommerce-cart-form .coupon #coupon_code {
+        width: 100% !important;
+    }
+    
+    .cart-collaterals .cart_totals table th,
+    .cart-collaterals .cart_totals table td {
+        padding: 14px 18px !important;
+        font-size: 14px !important;
+    }
+    
+    .cart-collaterals .cart_totals table .order-total td .amount {
+        font-size: 20px !important;
+    }
+}
