@@ -223,8 +223,8 @@
             }
         }
 
-        // Fallback: si no detectó nada razonable, usar 110px (dos barras de header típicas)
-        if (headerBottom < 20) headerBottom = 110;
+        // Fallback calibrado: 101px es la altura real medida del header de NexTech
+        if (headerBottom < 20) headerBottom = 101;
 
         return headerBottom + 24; // +24px de margen visual para que el encabezado azul respire
     }
