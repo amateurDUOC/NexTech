@@ -230,21 +230,30 @@
     }
 
     /**
-     * Abre el dropdown del siguiente paso y hace scroll suave respetando el header sticky.
-     * Usa scroll-margin-top para que el navegador calcule el offset automáticamente,
-     * sin depender del timing del DOM ni de cálculos manuales de posición.
+     * Realiza el scroll hasta el dropdown con el offset del header sticky.
+     * Siempre usa window.scrollTo para evitar problemas con contenedores
+     * padres que intercepten scrollIntoView.
+     */
+    function scrollToDropdown(dropdown) {
+        const headerH  = getStickyHeaderHeight();
+        const rect     = dropdown.getBoundingClientRect();
+        const absTop   = rect.top + window.pageYOffset;
+        window.scrollTo({ top: Math.max(0, absTop - headerH), behavior: 'smooth' });
+    }
+
+    /**
+     * Abre el dropdown del siguiente paso y hace scroll cuando el DOM está listo.
+     * Espera al evento transitionend del contenido para calcular la posición final.
+     * Si no hay transición CSS, usa un fallback de 600ms.
      */
     function openNextStep(slug) {
         const dropdown = getDropdownForCategory(slug);
         if (!dropdown) return;
 
-        // Aplicar scroll-margin-top igual a la altura del header sticky
-        // El navegador lo respeta automáticamente en scrollIntoView
-        const headerOffset = getStickyHeaderHeight();
-        dropdown.style.scrollMarginTop = headerOffset + 'px';
+        const wasAlreadyOpen = dropdown.classList.contains('active');
 
-        // Abrir el dropdown si no está ya abierto
-        if (!dropdown.classList.contains('active')) {
+        // Abrir el dropdown
+        if (!wasAlreadyOpen) {
             dropdown.classList.add('active');
         }
 
@@ -254,10 +263,30 @@
             setTimeout(() => window.pcgamerInitCarousel(carousel), 120);
         }
 
-        // Esperar a que el dropdown termine de abrirse antes de hacer scroll
-        setTimeout(() => {
-            dropdown.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 320);
+        if (!wasAlreadyOpen) {
+            // Esperar a que termine la transición CSS de apertura antes de medir
+            const content = dropdown.querySelector('.pcgamer-dropdown-content');
+            let scrollDone = false;
+
+            const doScroll = () => {
+                if (scrollDone) return;
+                scrollDone = true;
+                scrollToDropdown(dropdown);
+            };
+
+            if (content) {
+                // Escuchar fin de transición (más preciso que setTimeout)
+                content.addEventListener('transitionend', function handler() {
+                    content.removeEventListener('transitionend', handler);
+                    doScroll();
+                });
+            }
+            // Fallback: si no hay transición CSS o tarda demasiado
+            setTimeout(doScroll, 600);
+        } else {
+            // Si ya estaba abierto, solo hacer scroll
+            setTimeout(() => scrollToDropdown(dropdown), 100);
+        }
     }
 
     function unlockStep(slug) {
