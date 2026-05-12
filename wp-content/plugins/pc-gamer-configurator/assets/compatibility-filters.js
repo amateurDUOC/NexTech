@@ -94,22 +94,26 @@
             if (!e.target.closest('#pcgamer-reset-all')) return;
             e.stopPropagation();
 
-            // Desmarcar todos los checkboxes y disparar change para que
-            // checkbox-control.js actualice el visual (.selected, texto botón)
+            // 1. Desmarcar todos los checkboxes
             document.querySelectorAll('input[name="pcgamer_extra[]"]').forEach(cb => {
-                if (cb.checked) {
-                    cb.checked = false;
-                    cb.dispatchEvent(new Event('change', { bubbles: true }));
-                }
+                cb.checked = false;
             });
 
-            // Limpiar estado interno
+            // 2. Limpiar visual de cada tarjeta directamente (más confiable que dispatchEvent)
+            document.querySelectorAll('.upgrade-item').forEach(item => {
+                item.classList.remove('selected');
+                const btn = item.querySelector('.select-button');
+                if (btn) btn.textContent = 'Seleccionar';
+                if (window.innerWidth <= 768) item.style.transform = '';
+            });
+
+            // 3. Limpiar estado interno
             selectedComponents = {};
 
-            // Restaurar todos los carruseles
+            // 4. Restaurar todos los carruseles a su estado original
             STEP_ORDER.forEach(slug => restoreDependentCarousels(slug));
 
-            // Limpiar mensajes de validación
+            // 5. Limpiar mensajes de validación
             const validationContainer = document.querySelector('.pcgamer-validation-messages');
             if (validationContainer) validationContainer.innerHTML = '';
         });
@@ -179,6 +183,29 @@
         restoreDependentCarousels(slug);
 
         applyLock(dropdown, slug, stepIndex);
+    }
+
+    /**
+     * Abre el dropdown del siguiente paso y hace scroll suave hacia él.
+     * No depende del estado de bloqueo — funciona con candados deshabilitados.
+     */
+    function openNextStep(slug) {
+        const dropdown = getDropdownForCategory(slug);
+        if (!dropdown) return;
+
+        // Abrir el dropdown si no está ya abierto
+        if (!dropdown.classList.contains('active')) {
+            dropdown.classList.add('active');
+        }
+
+        // Inicializar carrusel si es necesario
+        const carousel = dropdown.querySelector('.pcgamer-carousel-container');
+        if (carousel && typeof window.pcgamerInitCarousel === 'function') {
+            setTimeout(() => window.pcgamerInitCarousel(carousel), 120);
+        }
+
+        // Scroll suave hacia el siguiente paso
+        setTimeout(() => dropdown.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
     }
 
     function unlockStep(slug) {
@@ -260,10 +287,10 @@
                 .catch(err => console.error('[PCGamer] Error AJAX compatibilidad:', err));
         });
 
-        // Desbloquear el siguiente paso si corresponde
+        // Abrir y hacer scroll al siguiente paso automáticamente
         const stepIndex = STEP_ORDER.indexOf(selectedCategory);
         if (stepIndex !== -1 && stepIndex < STEP_ORDER.length - 1) {
-            unlockStep(STEP_ORDER[stepIndex + 1]);
+            openNextStep(STEP_ORDER[stepIndex + 1]);
         }
 
         // Validar build completa
