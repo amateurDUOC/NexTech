@@ -435,7 +435,7 @@
         container.innerHTML = '';
 
         if (validation.valid) {
-            container.innerHTML = '<div class="pcgamer-validation-ok" style="padding:8px 12px;background:#d4edda;color:#155724;border-radius:4px;font-size:13px;">✓ Configuración compatible</div>';
+            container.innerHTML = '<div class="pcgamer-validation-ok" style="padding:14px 20px;background:#d4edda;color:#155724;border-radius:6px;font-size:15px;font-weight:600;text-align:center;border:1px solid #b8dfc5;">✅ ¡Configuración compatible! Todos los componentes funcionan correctamente entre sí.</div>';
             return;
         }
 

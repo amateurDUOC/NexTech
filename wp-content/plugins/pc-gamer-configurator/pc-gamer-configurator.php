@@ -1367,9 +1367,6 @@ HTML;
         echo '<button type="button" id="pcgamer-reset-all" title="Borrar todas las selecciones y empezar de nuevo" style="position:absolute;top:50%;right:0;transform:translateY(-50%);">↺ Borrar selección</button>';
         echo '</div>';
 
-        // Contenedor para mensajes de validación de compatibilidad
-        echo '<div class="pcgamer-validation-messages"></div>';
-
         $required_steps = [
             'Procesadores PC Armado',
             'Placas PC Armado',
@@ -1493,6 +1490,9 @@ HTML;
             echo '</div>';
             echo '</div>';
         }
+
+        // Mensaje de validación al final, debajo de todos los pasos incluido "Agregar monitor"
+        echo '<div class="pcgamer-validation-messages" style="margin-top:16px;"></div>';
 
         echo '</div>';
     }
