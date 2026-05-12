@@ -83,7 +83,7 @@
             ajaxUrl   = pcgamerAjax.ajaxUrl;
         }
 
-        initStepLocking();
+        // initStepLocking() deshabilitado — todos los pasos abiertos por decisión del PO
 
         document.querySelectorAll('input[name="pcgamer_extra[]"]').forEach(cb => {
             cb.addEventListener('change', handleComponentSelection);
@@ -105,10 +105,7 @@
             // Restaurar todos los carruseles
             STEP_ORDER.forEach(slug => restoreDependentCarousels(slug));
 
-            // Re-bloquear todos los pasos excepto el primero
-            for (let i = 1; i < STEP_ORDER.length; i++) {
-                relockStep(STEP_ORDER[i], i);
-            }
+            // Re-bloqueo deshabilitado — pasos siempre abiertos
 
             // Limpiar mensajes de validación
             const validationContainer = document.querySelector('.pcgamer-validation-messages');
@@ -242,13 +239,7 @@
             delete selectedComponents[selectedCategory];
             restoreDependentCarousels(selectedCategory);
 
-            // Re-bloquear todos los pasos que dependían de este
-            const stepIndex = STEP_ORDER.indexOf(selectedCategory);
-            if (stepIndex !== -1) {
-                for (let i = stepIndex + 1; i < STEP_ORDER.length; i++) {
-                    relockStep(STEP_ORDER[i], i);
-                }
-            }
+            // Re-bloqueo deshabilitado — pasos siempre abiertos
             return;
         }
 

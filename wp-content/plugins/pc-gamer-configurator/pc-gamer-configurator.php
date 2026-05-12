@@ -84,18 +84,8 @@ class PCGamerConfigurator {
             'ajaxUrl' => admin_url('admin-ajax.php'),
         ]);
 
-        // CSS para pasos bloqueados y botón borrar selección
+        // CSS botón borrar selección (candados eliminados por decisión de diseño)
         wp_add_inline_style('pcgamer-configurator-styles', '
-            .pcgamer-step-locked .pcgamer-dropdown-header {
-                opacity: 0.55;
-                cursor: not-allowed;
-            }
-            .pcgamer-step-locked .pcgamer-dropdown-content {
-                display: none !important;
-            }
-            .pcgamer-step-locked .pcgamer-dropdown-header h3 {
-                color: #888;
-            }
             #pcgamer-reset-all {
                 background: none;
                 border: 1px solid #ccc;
@@ -1450,7 +1440,7 @@ HTML;
             $is_required = in_array($slug, $required_steps);
             if ($is_required) $step_counter++;
             $step_attr   = $is_required ? ' data-step="' . $step_counter . '"' : '';
-            $locked_attr = ($is_required && $step_counter > 1) ? ' data-locked="true"' : ' data-locked="false"';
+            $locked_attr = ' data-locked="false"'; // Todos los pasos abiertos (sin candados)
 
             echo '<div class="pcgamer-category-dropdown"' . $step_attr . $locked_attr . '>';
             echo '<div class="pcgamer-dropdown-header">';
