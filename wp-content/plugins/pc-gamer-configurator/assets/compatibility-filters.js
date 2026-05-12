@@ -113,7 +113,16 @@
             // 4. Restaurar todos los carruseles a su estado original
             STEP_ORDER.forEach(slug => restoreDependentCarousels(slug));
 
-            // 5. Limpiar mensajes de validación
+            // 5. Cerrar todos los pasos excepto el primero
+            document.querySelectorAll('.pcgamer-category-dropdown').forEach((dropdown, index) => {
+                if (index === 0) {
+                    dropdown.classList.add('active'); // primero siempre abierto
+                } else {
+                    dropdown.classList.remove('active'); // los demás cerrados
+                }
+            });
+
+            // 6. Limpiar mensajes de validación
             const validationContainer = document.querySelector('.pcgamer-validation-messages');
             if (validationContainer) validationContainer.innerHTML = '';
         });
@@ -186,7 +195,27 @@
     }
 
     /**
-     * Abre el dropdown del siguiente paso y hace scroll suave hacia él.
+     * Calcula la altura total de los headers sticky para usarla como offset de scroll.
+     * Busca cualquier elemento fijo en la parte superior de la página.
+     */
+    function getStickyHeaderHeight() {
+        let totalHeight = 0;
+        document.querySelectorAll('header, .header, [class*="header"], nav, .sticky, [class*="sticky"]').forEach(el => {
+            const style = window.getComputedStyle(el);
+            if ((style.position === 'fixed' || style.position === 'sticky') && el.offsetHeight > 0) {
+                const rect = el.getBoundingClientRect();
+                // Solo contar elementos que estén en la parte superior
+                if (rect.top <= 10) {
+                    totalHeight = Math.max(totalHeight, rect.bottom);
+                }
+            }
+        });
+        // Añadir 12px de margen visual para que el encabezado azul no quede pegado al header
+        return totalHeight + 12;
+    }
+
+    /**
+     * Abre el dropdown del siguiente paso y hace scroll suave respetando el header sticky.
      * No depende del estado de bloqueo — funciona con candados deshabilitados.
      */
     function openNextStep(slug) {
@@ -204,8 +233,15 @@
             setTimeout(() => window.pcgamerInitCarousel(carousel), 120);
         }
 
-        // Scroll suave hacia el siguiente paso
-        setTimeout(() => dropdown.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+        // Scroll con offset para respetar el header sticky
+        setTimeout(() => {
+            const headerOffset = getStickyHeaderHeight();
+            const dropdownTop  = dropdown.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({
+                top: dropdownTop - headerOffset,
+                behavior: 'smooth'
+            });
+        }, 150);
     }
 
     function unlockStep(slug) {
