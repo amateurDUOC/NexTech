@@ -226,7 +226,7 @@
         // Fallback: si no detectó nada razonable, usar 110px (dos barras de header típicas)
         if (headerBottom < 20) headerBottom = 110;
 
-        return headerBottom + 14; // +14px de margen visual
+        return headerBottom + 24; // +24px de margen visual para que el encabezado azul respire
     }
 
     /**
@@ -248,7 +248,8 @@
             setTimeout(() => window.pcgamerInitCarousel(carousel), 120);
         }
 
-        // Scroll con offset para respetar el header sticky
+        // Esperar a que el dropdown termine de abrirse (transición CSS)
+        // antes de calcular su posición real en el DOM
         setTimeout(() => {
             const headerOffset = getStickyHeaderHeight();
             const dropdownTop  = dropdown.getBoundingClientRect().top + window.scrollY;
@@ -256,7 +257,7 @@
                 top: dropdownTop - headerOffset,
                 behavior: 'smooth'
             });
-        }, 150);
+        }, 350);
     }
 
     function unlockStep(slug) {
