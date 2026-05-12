@@ -231,11 +231,17 @@
 
     /**
      * Abre el dropdown del siguiente paso y hace scroll suave respetando el header sticky.
-     * No depende del estado de bloqueo — funciona con candados deshabilitados.
+     * Usa scroll-margin-top para que el navegador calcule el offset automáticamente,
+     * sin depender del timing del DOM ni de cálculos manuales de posición.
      */
     function openNextStep(slug) {
         const dropdown = getDropdownForCategory(slug);
         if (!dropdown) return;
+
+        // Aplicar scroll-margin-top igual a la altura del header sticky
+        // El navegador lo respeta automáticamente en scrollIntoView
+        const headerOffset = getStickyHeaderHeight();
+        dropdown.style.scrollMarginTop = headerOffset + 'px';
 
         // Abrir el dropdown si no está ya abierto
         if (!dropdown.classList.contains('active')) {
@@ -248,16 +254,10 @@
             setTimeout(() => window.pcgamerInitCarousel(carousel), 120);
         }
 
-        // Esperar a que el dropdown termine de abrirse (transición CSS)
-        // antes de calcular su posición real en el DOM
+        // Esperar a que el dropdown termine de abrirse antes de hacer scroll
         setTimeout(() => {
-            const headerOffset = getStickyHeaderHeight();
-            const dropdownTop  = dropdown.getBoundingClientRect().top + window.scrollY;
-            window.scrollTo({
-                top: dropdownTop - headerOffset,
-                behavior: 'smooth'
-            });
-        }, 350);
+            dropdown.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 320);
     }
 
     function unlockStep(slug) {
