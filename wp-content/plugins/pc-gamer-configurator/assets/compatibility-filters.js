@@ -94,9 +94,13 @@
             if (!e.target.closest('#pcgamer-reset-all')) return;
             e.stopPropagation();
 
-            // Desmarcar todos los checkboxes del configurador
+            // Desmarcar todos los checkboxes y disparar change para que
+            // checkbox-control.js actualice el visual (.selected, texto botón)
             document.querySelectorAll('input[name="pcgamer_extra[]"]').forEach(cb => {
-                cb.checked = false;
+                if (cb.checked) {
+                    cb.checked = false;
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
+                }
             });
 
             // Limpiar estado interno
@@ -104,8 +108,6 @@
 
             // Restaurar todos los carruseles
             STEP_ORDER.forEach(slug => restoreDependentCarousels(slug));
-
-            // Re-bloqueo deshabilitado — pasos siempre abiertos
 
             // Limpiar mensajes de validación
             const validationContainer = document.querySelector('.pcgamer-validation-messages');
