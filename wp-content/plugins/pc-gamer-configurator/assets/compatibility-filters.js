@@ -195,23 +195,38 @@
     }
 
     /**
-     * Calcula la altura total de los headers sticky para usarla como offset de scroll.
-     * Busca cualquier elemento fijo en la parte superior de la página.
+     * Mide la altura real del header sticky usando elementFromPoint.
+     * Recorre el viewport de arriba hacia abajo de 1px en 1px hasta que
+     * el elemento ya no sea parte del header — funciona con cualquier tema.
      */
     function getStickyHeaderHeight() {
-        let totalHeight = 0;
-        document.querySelectorAll('header, .header, [class*="header"], nav, .sticky, [class*="sticky"]').forEach(el => {
-            const style = window.getComputedStyle(el);
-            if ((style.position === 'fixed' || style.position === 'sticky') && el.offsetHeight > 0) {
-                const rect = el.getBoundingClientRect();
-                // Solo contar elementos que estén en la parte superior
-                if (rect.top <= 10) {
-                    totalHeight = Math.max(totalHeight, rect.bottom);
-                }
+        // Usar elementFromPoint: el viewport siempre refleja lo que está fijo/sticky
+        // Empezamos desde y=1 y bajamos hasta encontrar un elemento que NO sea header
+        const knownHeaderTags = ['header', 'nav'];
+        const knownHeaderWords = ['header', 'nav', 'masthead', 'menu', 'toolbar', 'topbar', 'top-bar'];
+
+        function isHeaderElement(el) {
+            if (!el || el === document.body || el === document.documentElement) return false;
+            if (knownHeaderTags.includes(el.tagName.toLowerCase())) return true;
+            const cls  = (el.className  || '').toLowerCase();
+            const id   = (el.id         || '').toLowerCase();
+            return knownHeaderWords.some(w => cls.includes(w) || id.includes(w));
+        }
+
+        let headerBottom = 0;
+        // Escanear el centro horizontal de la pantalla de arriba hacia abajo
+        const xMid = Math.floor(window.innerWidth / 2);
+        for (let y = 1; y <= 300; y++) {
+            const el = document.elementFromPoint(xMid, y);
+            if (isHeaderElement(el) || (el && isHeaderElement(el.parentElement))) {
+                headerBottom = y;
             }
-        });
-        // Añadir 12px de margen visual para que el encabezado azul no quede pegado al header
-        return totalHeight + 12;
+        }
+
+        // Fallback: si no detectó nada razonable, usar 110px (dos barras de header típicas)
+        if (headerBottom < 20) headerBottom = 110;
+
+        return headerBottom + 14; // +14px de margen visual
     }
 
     /**
