@@ -1,0 +1,433 @@
+/* ==========================================================================
+   Nextech Product Filter — Admin UI styles
+   ========================================================================== */
+
+/* Layout
+   ========================================================================== */
+.nxf-admin-wrap {
+    max-width: 1400px;
+}
+
+.nxf-admin-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0;
+}
+
+.nxf-admin-header h1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nxf-version {
+    font-size: 12px;
+    color: #888;
+    font-weight: 400;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.nxf-tabs {
+    margin-bottom: 0;
+}
+
+/* Two-column layout
+   ========================================================================== */
+.nxf-layout {
+    display: flex;
+    gap: 0;
+    border: 1px solid #c3c4c7;
+    border-top: none;
+    background: #fff;
+    min-height: 600px;
+}
+
+/* Left sidebar
+   ========================================================================== */
+.nxf-cat-sidebar {
+    width: 240px;
+    min-width: 240px;
+    border-right: 1px solid #c3c4c7;
+    background: #f6f7f7;
+    overflow-y: auto;
+    max-height: 800px;
+}
+
+.nxf-search-wrap {
+    padding: 12px;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+#nxf-cat-search {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#nxf-cat-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nxf-cat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #e2e4e7;
+    transition: background .15s;
+    font-size: 13px;
+}
+
+.nxf-cat-item:hover {
+    background: #e8f4fd;
+}
+
+.nxf-cat-item.is-active {
+    background: #2271b1;
+    color: #fff;
+}
+
+.nxf-cat-item.is-active .nxf-configured-badge {
+    color: #a8d8ff;
+}
+
+.nxf-cat-item.is-configured .nxf-cat-name {
+    font-weight: 600;
+}
+
+.nxf-configured-badge {
+    color: #2271b1;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* Right panel
+   ========================================================================== */
+.nxf-config-panel {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+}
+
+.nxf-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 400px;
+    color: #888;
+    text-align: center;
+    gap: 8px;
+}
+
+.nxf-empty-icon {
+    font-size: 48px;
+    opacity: .4;
+}
+
+.nxf-empty-state h3 {
+    color: #444;
+    margin: 0;
+}
+
+.nxf-empty-state p {
+    color: #888;
+    margin: 0;
+}
+
+.nxf-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e2e4e7;
+    gap: 16px;
+}
+
+.nxf-panel-header h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+}
+
+.nxf-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.nxf-slug-badge {
+    background: #e7f3ff;
+    color: #2271b1;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.nxf-source-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.nxf-source-badge.from-admin {
+    background: #d4edda;
+    color: #155724;
+}
+
+.nxf-source-badge.from-php {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.nxf-source-badge.from-none {
+    background: #f8f9fa;
+    color: #6c757d;
+}
+
+.nxf-panel-body {
+    padding: 20px 24px;
+}
+
+.nxf-section {
+    margin-bottom: 24px;
+}
+
+.nxf-section h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+}
+
+.nxf-hint {
+    font-size: 11px;
+    color: #888;
+    font-weight: 400;
+}
+
+/* Attrs list
+   ========================================================================== */
+.nxf-attrs-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    min-height: 40px;
+}
+
+.nxf-no-attrs {
+    padding: 16px;
+    color: #888;
+    font-style: italic;
+    text-align: center;
+}
+
+.nxf-attr-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f0f1;
+    background: #fff;
+    cursor: grab;
+}
+
+.nxf-attr-item:last-child {
+    border-bottom: none;
+}
+
+.nxf-attr-item:hover {
+    background: #f6f7f7;
+}
+
+.nxf-attr-item.is-group {
+    background: #f0f6fc;
+}
+
+.nxf-drag-handle {
+    cursor: grab;
+    color: #ccc;
+    font-size: 16px;
+}
+
+.nxf-attr-info {
+    flex: 1;
+}
+
+.nxf-attr-nombre {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.nxf-attr-slug {
+    font-size: 11px;
+    color: #888;
+}
+
+.nxf-attr-group-badge {
+    background: #2271b1;
+    color: #fff;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+}
+
+.nxf-attr-children {
+    margin: 4px 0 0 16px;
+    font-size: 11px;
+    color: #666;
+}
+
+.nxf-btn-remove-attr {
+    color: #d63638 !important;
+    border-color: #d63638 !important;
+    padding: 2px 8px;
+    font-size: 11px;
+}
+
+.nxf-btn-remove-attr:hover {
+    background: #d63638 !important;
+    color: #fff !important;
+}
+
+/* Add row
+   ========================================================================== */
+.nxf-add-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nxf-select,
+.nxf-input {
+    padding: 6px 10px;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.nxf-select {
+    min-width: 220px;
+}
+
+.nxf-input {
+    flex: 1;
+    min-width: 160px;
+}
+
+/* Group builder
+   ========================================================================== */
+.nxf-group-builder {
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 16px;
+    background: #f6f7f7;
+}
+
+.nxf-group-header-row {
+    margin-bottom: 12px;
+}
+
+.nxf-group-header-row .nxf-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nxf-child-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.nxf-child-row .nxf-input {
+    flex: 1;
+}
+
+.nxf-child-row .nxf-select {
+    flex: 1;
+}
+
+.nxf-group-footer {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* Save message
+   ========================================================================== */
+.nxf-save-msg {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.nxf-save-msg.success {
+    color: #00a32a;
+}
+
+.nxf-save-msg.error {
+    color: #d63638;
+}
+
+.nxf-btn-delete {
+    color: #d63638 !important;
+}
+
+/* Tools grid
+   ========================================================================== */
+.nxf-tools-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.nxf-tools-grid .postbox {
+    margin: 0;
+}
+
+.nxf-ok-badge {
+    color: #00a32a;
+    font-weight: 600;
+    margin-left: 12px;
+}
+
+.nxf-badge-admin {
+    background: #d4edda;
+    color: #155724;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.nxf-badge-php {
+    background: #fff3cd;
+    color: #856404;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Sortable placeholder
+   ========================================================================== */
+.nxf-attr-item.ui-sortable-helper {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+    border-radius: 4px;
+}
+
+.nxf-sortable-placeholder {
+    border: 2px dashed #2271b1;
+    background: #e8f4fd;
+    height: 44px;
+    list-style: none;
+}
