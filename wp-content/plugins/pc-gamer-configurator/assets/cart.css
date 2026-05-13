@@ -1,0 +1,219 @@
+/* ─── PC Gamer Configurator — Estilos del carrito ─────────────────────────── */
+
+/* ── Fila del PC principal ─────────────────────────────────────────────────── */
+tr.pcgamer-main-item > td {
+    background-color: #eef3ff !important;
+    border-bottom: 3px solid #1a73e8 !important;
+    border-top: 3px solid #1a73e8 !important;
+    padding-top: 16px !important;
+    padding-bottom: 16px !important;
+}
+
+/* Destacar el nombre del PC principal */
+tr.pcgamer-main-item .product-name a {
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    color: #1a1a2e !important;
+    line-height: 1.4 !important;
+}
+
+/* ── Botón toggle "Ver componentes" ────────────────────────────────────────── */
+.pcgamer-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: #1558b0;
+    background: #dce8fd;
+    border: 2px solid #1a73e8;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    font-family: inherit;
+    line-height: 1.5;
+    font-weight: 600;
+}
+
+.pcgamer-toggle:hover {
+    background: #c2d7fb;
+    color: #0d47a1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(26, 115, 232, 0.2);
+}
+
+.pcgamer-toggle-icon {
+    font-size: 13px;
+    transition: transform 0.25s ease;
+    display: inline-block;
+}
+
+/* ── Fila separadora "⚙ Componentes del armado" ────────────────────────────── */
+tr.pcgamer-extras-header > td {
+    padding: 12px 18px !important;
+    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%) !important;
+    border: none !important;
+    border-left: none !important;
+    margin-top: 8px !important;
+    box-shadow: 0 2px 6px rgba(26, 115, 232, 0.15) !important;
+}
+
+.pcgamer-extras-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pcgamer-extras-label span {
+    color: #fff !important;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+/* ── Filas de componentes (extras) ─────────────────────────────────────────── */
+tr.pcgamer-extra-item > td {
+    background-color: #f8faff !important;
+    border-top: 1px solid #e0e8f5 !important;
+    border-bottom: 1px solid #e0e8f5 !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+}
+
+/* Línea azul lateral que agrupa los componentes visualmente */
+tr.pcgamer-extra-item > td.product-remove {
+    border-left: 5px solid #1a73e8 !important;
+    background-color: #f8faff !important;
+}
+
+/* Ocultar botón × en los componentes (no se pueden eliminar individualmente) */
+tr.pcgamer-extra-item .product-remove a.remove {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Imagen reducida para componentes */
+tr.pcgamer-extra-item .product-thumbnail img {
+    width: 52px !important;
+    height: 52px !important;
+    object-fit: contain !important;
+    border-radius: 6px !important;
+    opacity: 0.9;
+    background: #fff;
+    padding: 4px;
+    border: 1px solid #e0e8f5;
+}
+
+/* Nombre del componente — sutil pero legible */
+tr.pcgamer-extra-item .product-name a {
+    font-size: 14px !important;
+    color: #2c3e50 !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+}
+
+/* Cantidad fija — input de solo lectura */
+tr.pcgamer-extra-item .quantity input {
+    font-size: 14px !important;
+    color: #555 !important;
+    font-weight: 600 !important;
+    background: #e8eef8 !important;
+    border-color: #c5d3ed !important;
+    cursor: default !important;
+    pointer-events: none !important;
+    padding: 6px 10px !important;
+    border-radius: 4px !important;
+}
+
+/* Precio en extras */
+tr.pcgamer-extra-item .product-price .amount,
+tr.pcgamer-extra-item .product-subtotal .amount {
+    font-size: 14px !important;
+    color: #1a73e8 !important;
+    font-style: normal !important;
+    font-weight: 600 !important;
+}
+
+/* ── Fila de cierre del grupo (degradado de separación) ─────────────────────── */
+tr.pcgamer-extras-closer > td {
+    padding: 0 !important;
+    height: 8px !important;
+    background: linear-gradient(to bottom, #b0c9f8 0%, rgba(176, 201, 248, 0.3) 100%) !important;
+    border: none !important;
+    border-left: 5px solid #1a73e8 !important;
+}
+
+/* ── Estado colapsado ───────────────────────────────────────────────────────── */
+tr.pcgamer-hidden {
+    display: none !important;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    tr.pcgamer-main-item > td {
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
+    }
+
+    tr.pcgamer-extra-item > td {
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
+    }
+
+    tr.pcgamer-extra-item .product-thumbnail img {
+        width: 44px !important;
+        height: 44px !important;
+    }
+
+    tr.pcgamer-extra-item .product-name a {
+        font-size: 13px !important;
+    }
+
+    .pcgamer-toggle {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    tr.pcgamer-extras-header > td {
+        padding: 10px 14px !important;
+    }
+
+    .pcgamer-extras-label span {
+        font-size: 11px;
+    }
+}
+
+/* ── Mejoras de espaciado general en la tabla ─────────────────────────────────── */
+table.shop_table {
+    margin-bottom: 24px !important;
+}
+
+/* Asegurar espacios en blanco alrededor de grupos */
+tr.pcgamer-main-item {
+    margin-bottom: 0 !important;
+}
+
+tr.pcgamer-extras-header {
+    margin-top: 8px !important;
+}
+
+/* Mejorar separación visual entre grupos de PCs */
+tr.pcgamer-main-item:not(:first-of-type) > td {
+    border-top: 3px solid #1a73e8 !important;
+    margin-top: 8px !important;
+}
+
+/* Estilos mejorados para datos de cantidades y precios */
+tr.pcgamer-main-item .quantity,
+tr.pcgamer-extra-item .quantity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+tr.pcgamer-main-item .woocommerce-Price-amount,
+tr.pcgamer-extra-item .woocommerce-Price-amount {
+    display: inline-block;
+}
