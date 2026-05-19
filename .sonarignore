@@ -1,0 +1,52 @@
+# WordPress core - no analizar
+wp-admin/**
+wp-includes/**
+wp-login.php
+wp-cron.php
+wp-signup.php
+xmlrpc.php
+
+# Plugins de terceros - no analizar
+wp-content/plugins/woocommerce/**
+wp-content/plugins/akismet/**
+wp-content/plugins/all-in-one-wp-migration/**
+wp-content/plugins/all-in-one-wp-migration-unlimited-extension/**
+wp-content/plugins/checkout-fees-for-woocommerce/**
+wp-content/plugins/click-to-chat-for-whatsapp/**
+wp-content/plugins/cloudflare/**
+wp-content/plugins/facebook-for-woocommerce/**
+wp-content/plugins/google-site-kit/**
+wp-content/plugins/kadence-woocommerce-email-designer/**
+wp-content/plugins/limit-login-attempts-reloaded/**
+wp-content/plugins/loco-translate/**
+wp-content/plugins/query-monitor/**
+wp-content/plugins/seo-by-rank-math/**
+wp-content/plugins/transbank-webpay-plus-rest/**
+wp-content/plugins/woo-order-export-lite/**
+wp-content/plugins/woo-title-limit/**
+wp-content/plugins/woocommerce-mercadopago/**
+wp-content/plugins/woocommerce-order-status-manager-1.13.3-es/**
+wp-content/plugins/woocommerce-products-filter/**
+wp-content/plugins/wp-mail-smtp/**
+wp-content/plugins/wp-rocket/**
+
+# Temas de terceros
+wp-content/themes/flatsome/**
+wp-content/themes/twentytwentyfive/**
+wp-content/themes/twentytwentyfour/**
+
+# Uploads y caché
+wp-content/uploads/**
+wp-content/cache/**
+wp-content/upgrade/**
+wp-content/backup-migrate/**
+
+# Archivos generados y temporales
+**/*.min.js
+**/*.min.css
+**/*.map
+**/node_modules/**
+**/vendor/**
+**/__MACOSX/**
+**/*.zip
+**/error_log

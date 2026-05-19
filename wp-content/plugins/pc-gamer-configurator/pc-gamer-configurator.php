@@ -50,7 +50,8 @@ class PCGamerConfigurator {
         add_filter('woocommerce_add_cart_item_data', [ $this, 'capture_selected_extras' ], 10, 2);
         add_action('woocommerce_add_to_cart', [ $this, 'add_extras_once_main_added' ], 20, 6);
         add_filter('woocommerce_product_supports', [ $this, 'force_disable_ajax' ], 10, 3);
-        add_action('wp_enqueue_scripts', [ $this, 'enqueue_styles' ]);
+        add_action('wp_enqueue_scripts',    [ $this, 'enqueue_styles' ]);
+        add_action('admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ]);
 
         // AJAX: precios
         add_action('wp_ajax_pcgamer_sync_category_prices',    [ $this, 'ajax_sync_category_prices' ]);
@@ -84,24 +85,29 @@ class PCGamerConfigurator {
             'ajaxUrl' => admin_url('admin-ajax.php'),
         ]);
 
-        // CSS botón borrar selección (candados eliminados por decisión de diseño)
-        wp_add_inline_style('pcgamer-configurator-styles', '
-            #pcgamer-reset-all {
-                background: none;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                padding: 4px 12px;
-                font-size: 13px;
-                color: #666;
-                cursor: pointer;
-                white-space: nowrap;
+    }
+
+    public function enqueue_admin_assets( $hook ) {
+        $plugin_url = plugin_dir_url( __FILE__ );
+
+        // Metabox script — cargar en editor de productos
+        if ( in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
+            $screen = get_current_screen();
+            if ( $screen && $screen->post_type === 'product' ) {
+                wp_enqueue_script( 'pcgamer-admin-metabox-js', $plugin_url . 'assets/admin-metabox.js', [], '1.0.0', true );
             }
-            #pcgamer-reset-all:hover {
-                background: #f5f5f5;
-                border-color: #999;
-                color: #333;
-            }
-        ');
+        }
+
+        if ( $hook !== 'toplevel_page_pcgamer-config' ) return;
+
+        wp_enqueue_style( 'pcgamer-admin-styles', $plugin_url . 'assets/admin.css', [], '1.0.0' );
+        wp_enqueue_script( 'pcgamer-admin-js', $plugin_url . 'assets/admin.js', [ 'jquery' ], '1.0.0', true );
+
+        $compat_nonce = wp_create_nonce( 'pcgamer_compatibility_bulk' );
+        wp_enqueue_script( 'pcgamer-admin-compat-js', $plugin_url . 'assets/admin-compat.js', [ 'jquery' ], '1.0.0', true );
+        wp_localize_script( 'pcgamer-admin-compat-js', 'pcgamerAdminCompat', [
+            'nonce' => $compat_nonce,
+        ] );
     }
 
     public function admin_menu() {
@@ -267,290 +273,6 @@ class PCGamerConfigurator {
                     </table>
                 </form>
             </div>
-            <style>
-                .pcgamer-admin-container {
-                    max-width: 1100px;
-                    margin: 40px auto 40px auto;
-                    padding: 0 16px;
-                    box-sizing: border-box;
-                }
-                .pcgamer-admin-card {
-                    background: #fff;
-                    border-radius: 10px;
-                    box-shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1.5px 4px rgba(0,0,0,0.03);
-                    padding: 36px 32px 32px 32px;
-                    margin: 0 auto;
-                    width: 100%;
-                    box-sizing: border-box;
-                    overflow-x: auto;
-                }
-                .pcgamer-admin-card h1 {
-                    font-size: 2rem;
-                    margin-bottom: 18px;
-                    color: #222;
-                    font-weight: 700;
-                }
-                .pcgamer-admin-card h2 {
-                    font-size: 1.25rem;
-                    margin-top: 0;
-                    margin-bottom: 10px;
-                    color: #4a90e2;
-                    font-weight: 600;
-                }
-                .pcgamer-admin-card table.form-table {
-                    background: #f9f9f9;
-                    border-radius: 8px;
-                    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-                    padding: 0;
-                    width: 100%;
-                    margin-bottom: 0;
-                }
-                .pcgamer-admin-card table.form-table th,
-                .pcgamer-admin-card table.form-table td {
-                    padding: 18px 12px 18px 0;
-                    vertical-align: top;
-                }
-                .pcgamer-admin-card table.form-table th {
-                    width: 220px;
-                    font-weight: 600;
-                    color: #333;
-                }
-                .pcgamer-admin-card table.form-table td {
-                    background: #fff;
-                    border-radius: 6px;
-                }
-                .pcgamer-admin-card fieldset {
-                    border: none;
-                    padding: 0;
-                    margin: 0;
-                }
-                .pcgamer-admin-card .wp-list-table {
-                    background: #fff;
-                    border-radius: 6px;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-                    margin-bottom: 0;
-                }
-                .pcgamer-admin-card .wp-list-table th,
-                .pcgamer-admin-card .wp-list-table td {
-                    padding: 8px 10px;
-                    font-size: 15px;
-                }
-                .pcgamer-admin-card .wp-list-table th {
-                    background: #f4f7fa;
-                    color: #444;
-                    font-weight: 600;
-                }
-                .pcgamer-admin-card .wp-list-table tr:nth-child(even) td {
-                    background: #f9f9f9;
-                }
-                .pcgamer-admin-card .wp-list-table tr td input[type="checkbox"] {
-                    transform: scale(1.2);
-                }
-                .pcgamer-admin-card .pcgamer-sync-search {
-                    margin-bottom: 8px;
-                }
-                .pcgamer-admin-card .button {
-                    margin-bottom: 0;
-                }
-                .pcgamer-admin-card .pcgamer-select-all-btn,
-                .pcgamer-admin-card .pcgamer-deselect-all-btn {
-                    margin-right: 5px;
-                }
-                .pcgamer-admin-card .pcgamer-sort-price {
-                    margin-left: 5px;
-                }
-                .pcgamer-admin-card .spinner {
-                    vertical-align: middle;
-                }
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 46px;
-                    height: 24px;
-                }
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 24px;
-                }
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 18px;
-                    width: 18px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-                input:checked + .slider {
-                    background-color: #4a90e2;
-                }
-                input:checked + .slider:before {
-                    transform: translateX(22px);
-                }
-                .toggle-label {
-                    font-size: 14px;
-                    color: #333;
-                }
-                .switch input:disabled + .slider {
-                    background-color: #e0e0e0;
-                }
-                @media (max-width: 900px) {
-                    .pcgamer-admin-card {
-                        padding: 18px 6px 18px 6px;
-                    }
-                    .pcgamer-admin-card table.form-table th {
-                        width: 120px;
-                        font-size: 14px;
-                    }
-                }
-                @media (max-width: 600px) {
-                    .pcgamer-admin-container {
-                        padding: 0 2px;
-                    }
-                    .pcgamer-admin-card {
-                        padding: 8px 2px 8px 2px;
-                    }
-                    .pcgamer-admin-card table.form-table th,
-                    .pcgamer-admin-card table.form-table td {
-                        padding: 8px 2px 8px 0;
-                        font-size: 13px;
-                    }
-                }
-            </style>
-            <script>
-                jQuery(document).ready(function($) {
-                    // Search/filter for each table
-                    $('.pcgamer-sync-search').on('input', function() {
-                        var search = $(this).val().toLowerCase();
-                        var tableId = $(this).data('table');
-                        $('#' + tableId + ' tbody tr').each(function() {
-                            // Only search in visible text columns (Producto and Precio Woo)
-                            var rowText = '';
-                            $(this).find('td').each(function(idx) {
-                                // Only include columns 1 and 2 (Producto, Precio Woo)
-                                if (idx === 1 || idx === 2) {
-                                    rowText += $(this).text().toLowerCase() + ' ';
-                                }
-                            });
-                            $(this).toggle(rowText.indexOf(search) !== -1);
-                        });
-                    });
-                    // Select/Deselect all functionality
-                    $('.pcgamer-select-all-btn').on('click', function() {
-                        var tableId = $(this).data('table');
-                        $('#' + tableId + ' tbody tr').each(function() {
-                            var $cb = $(this).find('input[type="checkbox"]');
-                            $cb.prop('checked', true).trigger('change');
-                        });
-                    });
-                    $('.pcgamer-deselect-all-btn').on('click', function() {
-                        var tableId = $(this).data('table');
-                        $('#' + tableId + ' tbody tr').each(function() {
-                            var $cb = $(this).find('input[type="checkbox"]');
-                            $cb.prop('checked', false).trigger('change');
-                        });
-                    });
-                    // Sort by price functionality
-                    $('.pcgamer-sort-price').on('change', function() {
-                        var tableId = $(this).data('table');
-                        var order = $(this).val();
-                        var $rows = $('#' + tableId + ' tbody tr').detach();
-                        $rows.sort(function(a, b) {
-                            var priceA = parseFloat($(a).data('price')) || 0;
-                            var priceB = parseFloat($(b).data('price')) || 0;
-                            return order === 'asc' ? priceA - priceB : priceB - priceA;
-                        });
-                        $('#' + tableId + ' tbody').append($rows);
-                    });
-                    // Per-category sync & save
-                    $('.pcgamer-category-sync-btn').on('click', function(e) {
-                        e.preventDefault();
-                        var btn = $(this);
-                        var category = btn.data('category');
-                        var nonce = btn.data('nonce');
-                        var label = btn.data('label');
-                        var spinner = btn.siblings('.spinner');
-                        var resultContainer = btn.siblings('.pcgamer-category-sync-result');
-                        spinner.css('visibility', 'visible');
-                        resultContainer.html('Sincronizando...');
-
-                        // Gather checked products and custom prices for this category
-                        var tableId = 'pcgamer-sync-table-' + category.replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
-                        var checked = [];
-                        var customPrices = {};
-                        $('#' + tableId + ' tbody tr').each(function() {
-                            var $row = $(this);
-                            var $cb = $row.find('input[type="checkbox"]');
-                            var $price = $row.find('input[type="number"]');
-                            if ($cb.prop('checked')) {
-                                checked.push($cb.val());
-                            }
-                            if ($price.length) {
-                                var val = $price.val();
-                                if (val !== '') {
-                                    customPrices[$cb.val()] = val;
-                                }
-                            }
-                        });
-
-                        $.ajax({
-                            url: ajaxurl,
-                            method: 'POST',
-                            data: {
-                                action: 'pcgamer_category_sync_and_save',
-                                category: category,
-                                nonce: nonce,
-                                products: checked,
-                                custom_prices: customPrices
-                            },
-                            success: function(response) {
-                                spinner.css('visibility', 'hidden');
-                                if (response.success) {
-                                    resultContainer.html('<span style="color:green;">' + response.data.message + '</span>');
-                                } else {
-                                    resultContainer.html('<span style="color:red;">Error: ' + response.data.message + '</span>');
-                                }
-                            },
-                            error: function() {
-                                spinner.css('visibility', 'hidden');
-                                resultContainer.html('<span style="color:red;">Error al comunicarse con el servidor</span>');
-                            }
-                        });
-                    });
-
-                    // Toggle ON/OFF for each category
-                    $('.pcgamer-category-toggle').on('change', function() {
-                        var $toggle = $(this);
-                        var category = $toggle.data('category');
-                        var enabled = $toggle.is(':checked') ? 1 : 0;
-                        var label = $toggle.closest('.pcgamer-toggle-switch').find('.toggle-label');
-                        label.text(enabled ? 'ON' : 'OFF');
-
-                        // Disable/enable all controls in this category
-                        var row = $toggle.closest('tr');
-                        row.find('input[type="checkbox"], input[type="number"], button, select, input.pcgamer-sync-search').not('.pcgamer-category-toggle').prop('disabled', !enabled);
-
-                        // AJAX save toggle state
-                        $.post(ajaxurl, {
-                            action: 'pcgamer_toggle_category',
-                            category: category,
-                            value: enabled,
-                            pcgamer_nonce: $('input[name="pcgamer_nonce"]').val()
-                        });
-                    });
-                });
-            </script>
             <?php endif; // fin else (tab precios) ?>
 
         </div><!-- cierre .pcgamer-admin-container -->
@@ -776,72 +498,6 @@ class PCGamerConfigurator {
             </div>
         </div>
 
-        <script>
-        jQuery(document).ready(function($) {
-            $('#pcgamer-save-compat-btn').on('click', function() {
-                var btn     = $(this);
-                var spinner = $('#pcgamer-save-spinner');
-                var result  = $('#pcgamer-save-result');
-                var notice  = $('#pcgamer-compat-notice');
-
-                btn.prop('disabled', true);
-                spinner.css('visibility', 'visible');
-                result.text('Guardando...');
-                notice.hide();
-
-                var items = [];
-                $('tr[data-product-id]').each(function() {
-                    var row  = $(this);
-                    var pid  = row.data('product-id');
-                    var data = { id: pid };
-
-                    row.find('.pcgamer-compat-field').each(function() {
-                        data[$(this).data('field')] = $(this).val();
-                    });
-
-                    // Form factors
-                    var ffs = [];
-                    row.find('.pcgamer-compat-ff:checked').each(function() { ffs.push($(this).val()); });
-                    if (row.find('.pcgamer-compat-ff').length) data['form_factors'] = ffs;
-
-                    // Radiator support
-                    var rads = [];
-                    row.find('.pcgamer-compat-rad:checked').each(function() { rads.push($(this).val()); });
-                    if (row.find('.pcgamer-compat-rad').length) data['radiator_support'] = rads;
-
-                    items.push(data);
-                });
-
-                $.ajax({
-                    url: ajaxurl,
-                    method: 'POST',
-                    data: {
-                        action: 'pcgamer_save_compatibility_bulk',
-                        nonce:  '<?php echo esc_js($nonce); ?>',
-                        items:  JSON.stringify(items)
-                    },
-                    success: function(response) {
-                        spinner.css('visibility', 'hidden');
-                        btn.prop('disabled', false);
-                        if (response.success) {
-                            result.css('color', 'green').text('✓ ' + response.data.message);
-                            notice.css({ background: '#d4edda', color: '#155724', display: 'block' }).text('✓ ' + response.data.message);
-                            $('tr[data-product-id] .pcgamer-row-status').text('✅').attr('title', 'Datos cargados');
-                        } else {
-                            result.css('color', 'red').text('Error: ' + response.data.message);
-                            notice.css({ background: '#f8d7da', color: '#721c24', display: 'block' }).text('Error: ' + response.data.message);
-                        }
-                        $('html,body').animate({ scrollTop: 0 }, 400);
-                    },
-                    error: function() {
-                        spinner.css('visibility', 'hidden');
-                        btn.prop('disabled', false);
-                        result.css('color', 'red').text('Error de conexión');
-                    }
-                });
-            });
-        });
-        </script>
         <?php
     }
 
@@ -1290,19 +946,6 @@ class PCGamerConfigurator {
         }
 
         echo '</div>';
-        echo <<<HTML
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const cb = document.querySelector("input[name='pcgamer_enabled']");
-    const settings = document.getElementById("pcgamer-upgrades-settings");
-    if (cb) {
-        cb.addEventListener("change", function () {
-            settings.style.display = this.checked ? "" : "none";
-        });
-    }
-});
-</script>
-HTML;
     }
 
     public function save_product_upgrades($post_id) {
@@ -1362,9 +1005,9 @@ HTML;
         $custom_prices = get_post_meta($product->get_id(), '_pcgamer_custom_prices', true) ?: [];
 
         echo '<div class="pcgamer-upgrades-wrapper" data-compatibility-nonce="' . esc_attr(wp_create_nonce('pcgamer_compatibility')) . '">';
-        echo '<div style="position:relative;text-align:center;margin-bottom:24px;">';
-        echo '<h2 style="margin:0;">🛠️ Personaliza tu PC Gamer</h2>';
-        echo '<button type="button" id="pcgamer-reset-all" title="Borrar todas las selecciones y empezar de nuevo" style="position:absolute;top:50%;right:0;transform:translateY(-50%);">↺ Borrar selección</button>';
+        echo '<div class="pcgamer-title-row">';
+        echo '<h2>🛠️ Personaliza tu PC Gamer</h2>';
+        echo '<button type="button" id="pcgamer-reset-all" title="Borrar todas las selecciones y empezar de nuevo">↺ Borrar selección</button>';
         echo '</div>';
 
         $required_steps = [

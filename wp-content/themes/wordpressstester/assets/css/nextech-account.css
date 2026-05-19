@@ -1,0 +1,29 @@
+/* ── Nextech — Mi cuenta styles ─────────────────────────────────────────── */
+
+.return-to-account {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.return-to-account .woocommerce-button {
+    display: inline-block;
+    padding: 8px 16px;
+    font-size: 14px;
+    background-color: #0073aa;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.return-to-account .woocommerce-button:hover {
+    background-color: #005177;
+}
+
+@media (max-width: 768px) {
+    .return-to-account .woocommerce-button {
+        width: 80%;
+        font-size: 13px;
+        padding: 10px;
+    }
+}
