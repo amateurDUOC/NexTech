@@ -540,10 +540,10 @@
         font-size: 12px;
         line-height: 1.2;
         display: -webkit-box;
-        -webkit-line-clamp: 4;
+        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        min-height: 4.8em;
+        min-height: 3.6em;
     }
 
     .upgrade-item p {
@@ -553,7 +553,7 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin: 6px 0;
+        margin: 4px 0;
         word-break: break-word;
     }
 
@@ -584,7 +584,12 @@
 
 @media (max-width: 480px) {
     .pcgamer-carousel-container {
-        padding: 0 32px;
+        padding: 0 16px;
+    }
+
+    .pcgamer-carousel {
+        gap: 16px;
+        padding-right: 30px;
     }
 
     .pcgamer-carousel-nav {
