@@ -188,15 +188,45 @@ p.category.product-cat {
     
     border-radius: 12px !important;
     overflow: hidden !important;
+    width: 100% !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
 }
+
+
+
+
 /*Degradado tipo sombra para las tarjetas de productos*/
 .product-small.col {
     filter: drop-shadow(0 5px 5px rgba(30, 115, 190, 1)) !important;
+    display: flex !important;
+}
+.product-small.col .price-wrapper {
+    margin-top: auto !important;
+    padding-top: 15px !important;
 }
 
 .row-box-shadow-2 .product-small.col .col-inner {
     box-shadow: none !important;
 }
+
+.product-small .price {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 2px !important;
+}
+/* Cortar descripción de tarjeta a 3 líneas con "..." */
+.product-small .title-wrapper {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    max-height: 5em !important;
+    
+    
+     
+}
+
 
 /*resalta la tarjeta al pasar el mouse*/
 .product-small.col:hover .col-inner {
