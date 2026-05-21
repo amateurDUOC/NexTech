@@ -221,9 +221,7 @@ p.category.product-cat {
     display: -webkit-box !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
-    max-height: 5em !important;
-    
-    
+    max-height: 5em !important; 
      
 }
 
