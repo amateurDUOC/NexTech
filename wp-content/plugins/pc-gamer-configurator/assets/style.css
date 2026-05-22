@@ -402,6 +402,8 @@
     transition: max-height 0.4s ease, opacity 0.3s ease;
 }
 
+
+
 .pcgamer-summary-dropdown.active .pcgamer-summary-content {
     max-height: 2000px;
     opacity: 1;
@@ -794,5 +796,97 @@
 
     #pcgamer-reset-all {
         justify-self: unset;
+    }
+
+
+    #pcgamer-summary-table,
+    #pcgamer-summary-table tbody,
+    #pcgamer-summary-table tfoot {
+        display: block;
+    }
+
+    #pcgamer-summary-table thead {
+        display: none;
+    }
+
+    /* Cada fila = bloque con grid */
+    #pcgamer-summary-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr 100px;
+        grid-template-rows: auto auto;
+        border: none;
+    }
+
+    /* Categoría = barra azul ancho completo */
+    #pcgamer-summary-table tbody tr td:first-child {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #4a90e2;
+        color: #fff;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 11px 14px;
+        border: none;
+    }
+
+    
+
+    /* Nombre del producto */
+    #pcgamer-summary-table tbody tr td:nth-child(2) {
+        grid-column: 1;
+        grid-row: 2;
+        border: 2px solid #d0d0d0;
+        border-top: none;
+        border-right: 1px solid #e0e0e0;
+        padding: 10px 12px;
+        font-size: 13px;
+        color: #222;
+    }
+
+    /* Precio */
+    #pcgamer-summary-table tbody tr td:nth-child(3) {
+        grid-column: 2;
+        grid-row: 2;
+        border: 2px solid #d0d0d0;
+        border-top: none;
+        border-left: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px !important;
+        color: #4a90e2;
+        
+    }
+
+    /* Evitar que el tema aplique 40px al precio dentro de la tabla */
+    #pcgamer-summary-table tbody tr td:nth-child(3) .woocommerce-Price-amount,
+    #pcgamer-summary-table tbody tr td:nth-child(3) bdi {
+        font-size: 14px !important;
+    }
+
+    /* Footer total */
+    #pcgamer-summary-table tfoot tr {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        padding: 12px 14px;
+    }
+
+    #pcgamer-summary-table tfoot th {
+        color: #838383 !important;
+        background: transparent !important;
+        border: none !important;
+        font-size: 14px !important;
+        padding: 0 !important;
+    }
+
+    #pcgamer-summary-table tfoot th:last-child {
+        color: #e53935 !important;
+        font-size: 16px !important;
     }
 }
