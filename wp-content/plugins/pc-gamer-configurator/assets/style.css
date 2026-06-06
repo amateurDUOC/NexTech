@@ -13,11 +13,6 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
-/* CORRECCIÓN — 2026-04-23
-   ANTES: faltaba el brace de cierre } en línea 14, causando que el bloque
-   no cerrara y los ~50 selectores siguientes quedaran dentro de este bloque.
-   Resultado: ningún estilo después de esta regla se aplicaba correctamente.
-   REVERTIR: Eliminar el } de cierre. */
 .pcgamer-upgrades-wrapper h2 {
     color: #333;
     font-size: 24px;
@@ -103,7 +98,7 @@
     overflow: hidden;
     transition: max-height 0.4s ease, padding 0.4s ease;
     opacity: 0;
-    visibility: hidden; /* Hide completely when closed */
+    visibility: hidden;
 }
 
 .pcgamer-category-dropdown.active .pcgamer-dropdown-content {
@@ -155,10 +150,12 @@
 
 .pcgamer-carousel-nav.prev {
     left: 0;
+    margin-left: 0;
 }
 
 .pcgamer-carousel-nav.next {
     right: 0;
+    margin-right: 0;
 }
 
 /* Carousel and items */
@@ -174,7 +171,7 @@
     transition: transform 0.5s ease;
     gap: 20px;
     width: fit-content;
-    padding-right: 40px; /* Add padding to ensure last item is fully visible */
+    padding-right: 40px;
 }
 
 .upgrade-item {
@@ -205,7 +202,6 @@
     border-radius: 5px;
 }
 
-/* Selected item styles - Desktop version */
 .upgrade-item.selected {
     border: 2px solid #28a745;
     box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
@@ -236,7 +232,6 @@
     display: inline-block;
 }
 
-/* Hide sale elements */
 .upgrade-item del {
     display: none !important;
 }
@@ -245,7 +240,6 @@
     text-decoration: none !important;
 }
 
-/* Replace checkbox styling with button styling */
 .upgrade-item label {
     display: flex;
     justify-content: center;
@@ -294,8 +288,6 @@
     content: "";
 }
 
-
-
 /* Animation for new items */
 @keyframes highlightRow {
     0% { background-color: #e6effd; }
@@ -305,8 +297,6 @@
 .pcgamer-highlight-row {
     animation: highlightRow 1.5s ease-out;
 }
-
-
 
 /* Responsive adjustments */
 @media (max-width: 1200px) {
@@ -336,10 +326,7 @@
     }
 }
 
-
-
 /* ── Total container ─────────────────────────────────────────────────────── */
-
 #pcgamer-total-container {
     margin: 30px auto 15px;
     font-weight: 600;
@@ -354,7 +341,6 @@
 }
 
 /* ── Resumen dropdown ────────────────────────────────────────────────────── */
-
 .pcgamer-summary-dropdown {
     margin-top: 12px;
     border: 1px solid #e0e0e0;
@@ -402,8 +388,6 @@
     transition: max-height 0.4s ease, opacity 0.3s ease;
 }
 
-
-
 .pcgamer-summary-dropdown.active .pcgamer-summary-content {
     max-height: 2000px;
     opacity: 1;
@@ -411,37 +395,28 @@
     padding: 16px;
 }
 
-/* ── Solo el precio del PC Base */
 #pcgamer-summary-table .base-product-row td:last-child .woocommerce-Price-amount {
     font-size: 14px !important;
     font-weight: 500 !important;
 }
 
-/* Resto de precios normales en azul y negrita */
 #pcgamer-summary-table td:last-child .woocommerce-Price-amount,
 #pcgamer-summary-table td:last-child .amount,
 #pcgamer-summary-table td:last-child bdi {
     color: #4a90e2 !important;
     font-weight: bold !important;
-    font-size: 16px !important; /* Asegura que los demás precios sigan grandes */
+    font-size: 16px !important;
 }
-
-
-
-/* === Estilos personalizados para tabla de resumen === */
 
 #pcgamer-summary-table td:last-child {
     color: #4a90e2;
     font-weight: bold;
 }
 
-/* Nombres de categorías en negrita (columna 1) */
 #pcgamer-summary-table td:first-child {
     font-weight: 600;
 }
 
-
-/* Estilo pro para la tabla de resumen */
 #pcgamer-summary-table {
     width: 100%;
     border-collapse: separate;
@@ -456,7 +431,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* Encabezado */
 #pcgamer-summary-table thead {
     background-color: #f7f9fc;
     color: #333;
@@ -472,11 +446,9 @@
 
 #pcgamer-summary-table th:last-child {
     text-align: center !important;
-    padding-left: 12px;  /* reduce margen interno izquierdo */
+    padding-left: 12px;
 }
 
-
-/* Celdas del cuerpo */
 #pcgamer-summary-table td {
     padding: 12px 20px;
     border-top: 1px solid #f0f0f0;
@@ -487,13 +459,11 @@
     background-color: #f9f9f9;
 }
 
-/* Fila base destacada */
 #pcgamer-summary-table .base-product-row td {
     background-color: #f0f8ff;
     font-weight: bold;
 }
 
-/* Fila total destacada */
 #pcgamer-summary-total {
     padding-top: 10px;
     text-align: right;
@@ -502,34 +472,52 @@
     color: #e53935;
 }
 
-/* LIMPIEZA — 2026-04-23
-   Se eliminaron ~36 líneas de CSS huérfano que estaban fuera de cualquier
-   selector o @media query (líneas 536-570 originales). Eran fragmentos
-   residuales de un bloque @media mal cerrado. Las reglas válidas de
-   .upgrade-item.selected::after y .upgrade-item p fueron consolidadas
-   dentro del @media (max-width: 768px) al final del archivo. */
+/* ── Mobile-first: tarjetas responsive con viewport units (escalable) ────── */
 
-/* ── Mobile: tarjetas de componentes (≤768px) ────────────────────────────── */
+/* Extra Small: 320px - 374px */
+@media (max-width: 320px) {
+    .pcgamer-carousel-container {
+        /* Márgenes laterales para que la tarjeta no toque los bordes */
+        padding: 0 16px;
+    }
 
-@media (max-width: 768px) {
-    .pcgamer-category-dropdown.active .pcgamer-dropdown-content {
-        padding: 12px 10px;
+    .pcgamer-carousel {
+        /* Espacio entre tarjetas */
+        gap: 16px;
+        /* Sin padding extra que consuma espacio */
+        padding-right: 0;
+    }
+
+    .pcgamer-carousel-nav {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    .pcgamer-carousel-nav.prev {
+        left: 0;
+    }
+
+    .pcgamer-carousel-nav.next {
+        right: 0;
     }
 
     .upgrade-item {
+        /* Ancho fijo: garantizado que cabe con márgenes */
+        width: 198px;
+        min-width: 198px;
+        max-width: 198px;
         display: flex !important;
         flex-direction: column;
         justify-content: space-between;
         align-items: center;
         text-align: center;
-        width: 176px;
-        min-width: 176px;
-        max-width: 176px;
         min-height: auto;
         height: auto;
         padding: 12px;
         margin: 0;
         box-sizing: border-box;
+        flex-shrink: 0;
     }
 
     .upgrade-item img {
@@ -539,7 +527,7 @@
     }
 
     .upgrade-item p strong {
-        font-size: 12px;
+        font-size: clamp(11px, 3vw, 12px);
         line-height: 1.2;
         display: -webkit-box;
         -webkit-line-clamp: 3;
@@ -549,7 +537,7 @@
     }
 
     .upgrade-item p {
-        font-size: 11px;
+        font-size: clamp(10px, 2.5vw, 11px);
         line-height: 1.3;
         display: -webkit-box;
         -webkit-box-orient: vertical;
@@ -562,69 +550,136 @@
     .upgrade-item .select-button,
     .select-button {
         margin-top: auto;
-        padding: 10px 12px;
+        padding: clamp(8px, 2vw, 10px) clamp(10px, 2vw, 12px);
         min-height: 44px;
-        font-size: 13px;
-        max-width: 120px;
-    }
-
-    .pcgamer-carousel-wrapper[data-category="Gabinetes PC Armado"] .upgrade-item {
-        width: 192px;
-        min-width: 192px;
-        max-width: 192px;
-    }
-
-    .pcgamer-carousel-wrapper[data-category="Memoria RAM PC Armado"] .upgrade-item,
-    .pcgamer-carousel-wrapper[data-category="refrigeracion"] .upgrade-item {
-        width: 136px;
-        min-width: 136px;
-        max-width: 136px;
+        font-size: clamp(12px, 2.5vw, 13px);
+        max-width: 100%;
     }
 }
 
-/* ── Mobile pequeño: pantallas ≤480px ───────────────────────────────────── */
-
-@media (max-width: 480px) {
+/* Small: 375px - 768px */
+@media (min-width: 375px) and (max-width: 768px) {
     .pcgamer-carousel-container {
         padding: 0 16px;
     }
 
     .pcgamer-carousel {
         gap: 16px;
-        padding-right: 30px;
-    }
-
-    .pcgamer-carousel-nav {
-        width: 30px;
-        height: 30px;
-        font-size: 16px;
+        padding-right: 0;
     }
 
     .upgrade-item {
-        width: 150px;
-        min-width: 150px;
-        max-width: 150px;
+        display: flex !important;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        text-align: center;
+        width: 198px;
+        min-width: 198px;
+        max-width: 198px;
+        min-height: auto;
+        height: auto;
+        padding: 12px;
+        margin: 0;
+        box-sizing: border-box;
+        flex-shrink: 0;
     }
 
-    .pcgamer-carousel-wrapper[data-category="Gabinetes PC Armado"] .upgrade-item {
-        width: 170px;
-        min-width: 170px;
-        max-width: 170px;
-    }
-
+    .pcgamer-carousel-wrapper[data-category="Gabinetes PC Armado"] .upgrade-item,
     .pcgamer-carousel-wrapper[data-category="Memoria RAM PC Armado"] .upgrade-item,
     .pcgamer-carousel-wrapper[data-category="refrigeracion"] .upgrade-item {
-        width: 120px;
-        min-width: 120px;
-        max-width: 120px;
+        width: calc((100vw - 32px - 16px) / 2);
+        min-width: calc((100vw - 32px - 16px) / 2);
+        max-width: calc((100vw - 32px - 16px) / 2);
     }
 
-    .extra-padding-spacer {
-        width: 160px;
+    .upgrade-item img {
+        max-height: 110px;
+        object-fit: contain;
+        margin: 0 auto 10px auto;
+    }
+
+    .upgrade-item p strong {
+        font-size: clamp(11px, 3vw, 12px);
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 3.6em;
+    }
+
+    .upgrade-item p {
+        font-size: clamp(10px, 2.5vw, 11px);
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 4px 0;
+        word-break: break-word;
+    }
+
+    .upgrade-item .select-button,
+    .select-button {
+        margin-top: auto;
+        padding: clamp(8px, 2vw, 10px) clamp(10px, 2vw, 12px);
+        min-height: 44px;
+        font-size: clamp(12px, 2.5vw, 13px);
+        max-width: 100%;
     }
 }
 
-/* ── Tabla de resumen responsive ────────────────────────────────────────── */
+/* Tabla de resumen responsive */
+@media (max-width: 320px) {
+    .pcgamer-summary-dropdown {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .pcgamer-summary-content {
+        padding: 0 !important;
+        overflow-x: auto;
+    }
+
+    #pcgamer-summary-table {
+        font-size: 12px;
+        width: 100% !important;
+        margin: 0 !important;
+        display: table;
+        table-layout: auto;
+    }
+
+    #pcgamer-summary-table th {
+        padding: 6px 2px;
+        font-size: 9px;
+    }
+
+    #pcgamer-summary-table th:last-child {
+        border-right: none;
+    }
+
+    #pcgamer-summary-table td {
+        padding: 4px 2px;
+        font-size: 9px;
+        word-break: break-word;
+    }
+
+    #pcgamer-summary-table td:last-child {
+        border-right: none;
+    }
+
+    #pcgamer-summary-table td:last-child .woocommerce-Price-amount,
+    #pcgamer-summary-table td:last-child .amount,
+    #pcgamer-summary-table td:last-child bdi {
+        font-size: 9px !important;
+    }
+
+    #pcgamer-summary-total {
+        font-size: 11px;
+        padding-right: 3px;
+    }
+}
 
 @media (max-width: 600px) {
     #pcgamer-summary-table {
@@ -652,8 +707,6 @@
     }
 }
 
-/* ── Wrapper principal responsive ───────────────────────────────────────── */
-
 @media (max-width: 600px) {
     .pcgamer-upgrades-wrapper {
         padding: 16px 8px;
@@ -666,227 +719,9 @@
 }
 
 
-/* ── Información del producto ─────────────────────────────────────────────── */
-
-.pcgamer-product-info {
-    margin-top: 16px;
-    padding: 14px 18px;
-    background: #f0f7ff;
-    border: 1px solid #cce0ff;
-    border-left: 4px solid #1a73e8;
-    border-radius: 6px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.pcgamer-info-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 24px;
-}
-
-.pcgamer-info-list li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    color: #333;
-    line-height: 1.4;
-}
-
-.pcgamer-info-icon {
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-@media (max-width: 600px) {
-    .pcgamer-info-list {
-        flex-direction: column;
-        gap: 8px;
-    }
-}
-
-/* ── Footer del recuadro de información ──────────────────────────────────── */
-
-.pcgamer-info-footer {
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid #cce0ff;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 24px;
-}
-
-.pcgamer-info-delivery,
-.pcgamer-info-contact {
-    margin: 0;
-    font-size: 13px;
-    color: #444;
-    line-height: 1.4;
-}
-
-.pcgamer-info-contact a {
-    color: #1a73e8;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.pcgamer-info-contact a:hover {
-    text-decoration: underline;
-}
-
-@media (max-width: 600px) {
-    .pcgamer-info-footer {
-        flex-direction: column;
-        gap: 6px;
-    }
-}
-
-/* ── Fila de título: grid de 3 columnas para centrado perfecto ───────────── */
-
-.pcgamer-title-row {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    margin-bottom: 24px;
-    gap: 8px;
-}
-
-.pcgamer-title-row h2 {
-    grid-column: 2;
-    margin: 0;
-    text-align: center;
-}
-
-/* ── Botón borrar selección ───────────────────────────────────────────────── */
-
-#pcgamer-reset-all {
-    grid-column: 3;
-    justify-self: end;
-    background: none;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 4px 12px;
-    font-size: 13px;
-    color: #666;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-#pcgamer-reset-all:hover {
-    background: #f5f5f5;
-    border-color: #999;
-    color: #333;
-}
-
-@media (max-width: 480px) {
-    .pcgamer-title-row {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .pcgamer-title-row h2 {
-        font-size: 18px;
-    }
-
-    #pcgamer-reset-all {
-        justify-self: unset;
-    }
-
-
-    #pcgamer-summary-table,
-    #pcgamer-summary-table tbody,
-    #pcgamer-summary-table tfoot {
-        display: block;
-    }
-
-    #pcgamer-summary-table thead {
-        display: none;
-    }
-
-    /* Cada fila = bloque con grid */
-    #pcgamer-summary-table tbody tr {
-        display: grid;
-        grid-template-columns: 1fr 100px;
-        grid-template-rows: auto auto;
-        border: none;
-    }
-
-    /* Categoría = barra azul ancho completo */
-    #pcgamer-summary-table tbody tr td:first-child {
-        grid-column: 1 / -1;
-        grid-row: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #4a90e2;
-        color: #fff;
-        font-weight: 700;
-        font-size: 14px;
-        padding: 11px 14px;
-        border: none;
-    }
-
-    
-
-    /* Nombre del producto */
-    #pcgamer-summary-table tbody tr td:nth-child(2) {
-        grid-column: 1;
-        grid-row: 2;
-        border: 2px solid #d0d0d0;
-        border-top: none;
-        border-right: 1px solid #e0e0e0;
-        padding: 10px 12px;
-        font-size: 13px;
-        color: #222;
-    }
-
-    /* Precio */
-    #pcgamer-summary-table tbody tr td:nth-child(3) {
-        grid-column: 2;
-        grid-row: 2;
-        border: 2px solid #d0d0d0;
-        border-top: none;
-        border-left: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 14px !important;
-        color: #4a90e2;
-        
-    }
-
-    /* Evitar que el tema aplique 40px al precio dentro de la tabla */
-    #pcgamer-summary-table tbody tr td:nth-child(3) .woocommerce-Price-amount,
-    #pcgamer-summary-table tbody tr td:nth-child(3) bdi {
-        font-size: 14px !important;
-    }
-
-    /* Footer total */
-    #pcgamer-summary-table tfoot tr {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #fff;
-        padding: 12px 14px;
-    }
-
-    #pcgamer-summary-table tfoot th {
-        color: #838383 !important;
-        background: transparent !important;
-        border: none !important;
-        font-size: 14px !important;
-        padding: 0 !important;
-    }
-
-    #pcgamer-summary-table tfoot th:last-child {
-        color: #e53935 !important;
-        font-size: 16px !important;
-    }
+/* iOS-specific enhancements (class-based, not inline) */
+.ios-device .ios-touch-friendly {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 20px !important;
 }
