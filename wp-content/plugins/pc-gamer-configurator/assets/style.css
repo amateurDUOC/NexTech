@@ -175,9 +175,9 @@
 }
 
 .upgrade-item {
-    width: calc(33.333% - 20px);
-    min-width: 210px;
-    max-width: 270px;
+    width: 198px;
+    min-width: 198px;
+    max-width: 198px;
     text-align: center;
     background: white;
     border: 1px solid #eaeaea;
@@ -301,9 +301,9 @@
 /* Responsive adjustments */
 @media (max-width: 1200px) {
     .upgrade-item {
-        width: calc(33.333% - 20px);
-        min-width: 180px;
-        max-width: 250px;
+        width: 198px;
+        min-width: 198px;
+        max-width: 198px;
         padding: 12px;
     }
 }
@@ -314,9 +314,9 @@
     }
     
     .upgrade-item {
-        width: calc(33.333% - 15px);
-        min-width: 160px;
-        max-width: 230px;
+        width: 198px;
+        min-width: 198px;
+        max-width: 198px;
         padding: 10px;
     }
     
@@ -585,14 +585,6 @@
         flex-shrink: 0;
     }
 
-    .pcgamer-carousel-wrapper[data-category="Gabinetes PC Armado"] .upgrade-item,
-    .pcgamer-carousel-wrapper[data-category="Memoria RAM PC Armado"] .upgrade-item,
-    .pcgamer-carousel-wrapper[data-category="refrigeracion"] .upgrade-item {
-        width: calc((100vw - 32px - 16px) / 2);
-        min-width: calc((100vw - 32px - 16px) / 2);
-        max-width: calc((100vw - 32px - 16px) / 2);
-    }
-
     .upgrade-item img {
         max-height: 110px;
         object-fit: contain;
@@ -717,7 +709,6 @@
         font-size: 18px;
     }
 }
-
 
 /* iOS-specific enhancements (class-based, not inline) */
 .ios-device .ios-touch-friendly {
