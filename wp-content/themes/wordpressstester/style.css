@@ -1051,50 +1051,180 @@ body.tax-product_cat .widget_layered_nav_filters {
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-    .woocommerce-cart-form table.shop_table {
-        margin-bottom: 24px !important;
-    }
-
-    .woocommerce-cart-form table.shop_table .product-thumbnail img {
-        width: 56px !important;
-        height: 56px !important;
-    }
-    
-    .woocommerce-cart-form table.shop_table thead th {
-        padding: 14px 14px !important;
-        font-size: 11px !important;
-    }
-    
-    .woocommerce-cart-form table.shop_table tbody tr td {
-        padding: 16px 14px !important;
-    }
-    
-    .woocommerce-cart-form table.shop_table .product-name a {
-        font-size: 13px !important;
-    }
-    
     .woocommerce-cart-form .actions {
         flex-direction: column !important;
         align-items: flex-start !important;
     }
-    
+
     .woocommerce-cart-form .coupon {
         flex-direction: column !important;
         width: 100% !important;
     }
-    
+
     .woocommerce-cart-form .coupon #coupon_code {
         width: 100% !important;
     }
-    
+
     .cart-collaterals .cart_totals table th,
     .cart-collaterals .cart_totals table td {
         padding: 14px 18px !important;
         font-size: 14px !important;
     }
-    
+
     .cart-collaterals .cart_totals table .order-total td .amount {
         font-size: 20px !important;
+    }
+
+    /* ── Tabla del carrito → tarjetas en mobile ──────────────────────────── */
+
+    /* Quitar bordes y forma de tabla */
+    .woocommerce-cart-form table.shop_table {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        margin-bottom: 8px !important;
+    }
+
+    .woocommerce-cart-form table.shop_table,
+    .woocommerce-cart-form table.shop_table tbody {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    /* Ocultar cabecera */
+    .woocommerce-cart-form table.shop_table thead {
+        display: none !important;
+    }
+
+    /* Anchos de columna desktop → sin efecto en mobile */
+    .woocommerce-cart-form table.shop_table .product-remove,
+    .woocommerce-cart-form table.shop_table .product-thumbnail,
+    .woocommerce-cart-form table.shop_table .product-price,
+    .woocommerce-cart-form table.shop_table .product-quantity,
+    .woocommerce-cart-form table.shop_table .product-subtotal {
+        width: auto !important;
+    }
+
+    /* Cada fila de producto = tarjeta */
+    .woocommerce-cart-form table.shop_table tr.cart_item {
+        display: grid !important;
+        grid-template-columns: 28px 72px 1fr auto;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            "remove thumb name    subtotal"
+            "remove thumb qty     subtotal";
+        align-items: center;
+        background: #fff !important;
+        border: 1px solid #e8ecf4 !important;
+        border-radius: 10px !important;
+        margin-bottom: 12px !important;
+        padding: 12px !important;
+        gap: 6px 10px;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.05) !important;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.cart_item td {
+        border: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.cart_item .product-remove {
+        grid-area: remove;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.cart_item .product-thumbnail {
+        grid-area: thumb;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.cart_item .product-thumbnail img {
+        width: 64px !important;
+        height: 64px !important;
+        object-fit: contain;
+        border-radius: 6px;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.cart_item .product-name {
+        grid-area: name;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+    }
+
+    /* Precio unitario: oculto en mobile (se ve el subtotal) */
+    .woocommerce-cart-form table.shop_table tr.cart_item .product-price {
+        display: none !important;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.cart_item .product-quantity {
+        grid-area: qty;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.cart_item .product-subtotal {
+        grid-area: subtotal;
+        font-weight: 800 !important;
+        font-size: 15px !important;
+        color: #c62828 !important;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    /* ── Filas de componentes PC Gamer en mobile ─────────────────────────── */
+
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extras-header {
+        display: block !important;
+        border-radius: 6px 6px 0 0 !important;
+        margin-bottom: 0 !important;
+        border: 1px solid #1a73e8 !important;
+        border-bottom: none !important;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extra-item {
+        display: grid !important;
+        grid-template-columns: 0 52px 1fr;
+        grid-template-areas: "x thumb name";
+        align-items: center;
+        background: #f5f9ff !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+        border: 1px solid #c8dcf7 !important;
+        border-top: none !important;
+        padding: 8px 12px !important;
+        gap: 0 10px;
+        box-shadow: none !important;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extra-item .product-remove,
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extra-item .product-price,
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extra-item .product-quantity,
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extra-item .product-subtotal {
+        display: none !important;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extra-item .product-thumbnail {
+        grid-area: thumb;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extra-item .product-thumbnail img {
+        width: 40px !important;
+        height: 40px !important;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extra-item .product-name {
+        grid-area: name;
+        font-size: 12px !important;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.pcgamer-last-extra {
+        border-radius: 0 !important;
+    }
+
+    .woocommerce-cart-form table.shop_table tr.pcgamer-extras-closer {
+        display: none !important;
     }
 }
 
@@ -1881,4 +2011,198 @@ body.page-id-35683 .entry-content > img {
     .nxt-emp-products-grid {
         grid-template-columns: 1fr;
     }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARRITO VACÍO — Página completa y mini-cart
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Página carrito vacío ─────────────────────────────────────────────────── */
+
+.nxt-empty-cart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px 80px;
+    text-align: center;
+}
+
+.nxt-empty-cart__icon {
+    width: 90px;
+    height: 90px;
+    background: #f0f4ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    color: #1e73be;
+}
+
+.nxt-empty-cart__icon svg {
+    width: 44px;
+    height: 44px;
+}
+
+.nxt-empty-cart__title {
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    color: #1a1a2e !important;
+    margin: 0 0 10px !important;
+    line-height: 1.2 !important;
+}
+
+.nxt-empty-cart__subtitle {
+    font-size: 15px !important;
+    color: #666 !important;
+    margin: 0 0 32px !important;
+}
+
+.nxt-empty-cart__actions {
+    margin-bottom: 56px;
+}
+
+.nxt-empty-cart__btn-shop {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #c62828 !important;
+    color: #fff !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    padding: 14px 32px !important;
+    border-radius: 8px !important;
+    text-decoration: none !important;
+    transition: background 0.2s, transform 0.15s;
+    letter-spacing: 0.3px;
+}
+
+.nxt-empty-cart__btn-shop:hover {
+    background: #a51f1f !important;
+    transform: translateY(-2px);
+}
+
+/* ── Categorías sugeridas ──────────────────────────────────────────────────── */
+
+.nxt-empty-cart__categories {
+    width: 100%;
+    max-width: 680px;
+}
+
+.nxt-empty-cart__categories-title {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #999 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 20px !important;
+}
+
+.nxt-empty-cart__categories-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.nxt-empty-cat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e8ecf4;
+    border-radius: 12px;
+    padding: 18px 12px;
+    text-decoration: none !important;
+    color: #1a1a2e !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.nxt-empty-cat-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+    border-color: #1e73be;
+    transform: translateY(-3px);
+    text-decoration: none !important;
+}
+
+.nxt-empty-cat-card img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+    .nxt-empty-cart {
+        padding: 40px 16px 60px;
+    }
+
+    .nxt-empty-cart__title {
+        font-size: 22px !important;
+    }
+
+    .nxt-empty-cart__categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ── Mini-cart vacío ──────────────────────────────────────────────────────── */
+
+.nxt-mini-cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 20px 24px;
+    text-align: center;
+}
+
+.nxt-mini-cart-empty__icon {
+    width: 64px;
+    height: 64px;
+    background: #f0f4ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    color: #1e73be;
+}
+
+.nxt-mini-cart-empty__icon svg {
+    width: 30px;
+    height: 30px;
+}
+
+.nxt-mini-cart-empty__msg {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #1a1a2e !important;
+    margin: 0 0 6px !important;
+}
+
+.nxt-mini-cart-empty__sub {
+    font-size: 12px !important;
+    color: #888 !important;
+    margin: 0 0 20px !important;
+}
+
+.nxt-mini-cart-empty__btn {
+    display: inline-block;
+    background: #c62828;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    padding: 10px 24px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    transition: background 0.2s;
+}
+
+.nxt-mini-cart-empty__btn:hover {
+    background: #a51f1f;
+    text-decoration: none !important;
 }

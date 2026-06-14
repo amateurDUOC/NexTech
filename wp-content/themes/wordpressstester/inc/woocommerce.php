@@ -44,6 +44,17 @@ add_action( 'woocommerce_before_main_content', function () {
     <?php
 }, 5 );
 
+/* Ocultar botón "Finalizar compra" del header cuando el carrito está vacío.
+   Flatsome renderiza el botón mediante el shortcode [button] dentro del header builder.
+   La forma más limpia es ocultarlo con CSS inline condicional en <head>. */
+add_action( 'wp_head', function () {
+    if ( ! function_exists( 'WC' ) || ! WC()->cart ) return;
+    if ( WC()->cart->is_empty() ) {
+        $checkout_url = esc_url( wc_get_checkout_url() );
+        echo '<style>a[href="' . $checkout_url . '"].button,a[href="' . $checkout_url . '"]{display:none!important}</style>';
+    }
+} );
+
 /* Vaciar carrito vía parámetro URL (solo usuarios logueados) */
 function vaciar_carrito_woocommerce() {
     if ( WC()->cart ) {

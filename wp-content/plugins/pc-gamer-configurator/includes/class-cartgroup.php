@@ -20,6 +20,9 @@ class CartGroup {
         // Clases CSS para agrupar visualmente el PC y sus componentes
         add_filter('woocommerce_cart_item_class', [ $this, 'add_cart_item_classes' ], 10, 3);
 
+        // Restaurar componentes hijos cuando el usuario deshace la eliminación
+        add_action('woocommerce_cart_item_restored', [ $this, 'restore_child_items' ], 10, 2);
+
         // Assets del carrito
         add_action('wp_enqueue_scripts', [ $this, 'enqueue_cart_assets' ]);
     }
@@ -40,6 +43,31 @@ class CartGroup {
         }
 
         return $link;
+    }
+
+    /**
+     * Cuando el usuario deshace la eliminación de una PC principal,
+     * restaura también los componentes hijos que fueron eliminados automáticamente.
+     */
+    public function restore_child_items($restored_key, $cart) {
+        $restored_item = $cart->get_cart_item($restored_key);
+        if (!$restored_item) return;
+
+        $enabled = get_post_meta($restored_item['product_id'], '_pcgamer_enabled', true);
+        if ($enabled !== 'yes') return;
+
+        $restored_any = false;
+        foreach ($cart->removed_cart_contents as $key => $item) {
+            if (isset($item['parent_cart_item_key']) && $item['parent_cart_item_key'] === $restored_key) {
+                $cart->cart_contents[$key] = $item;
+                unset($cart->removed_cart_contents[$key]);
+                $restored_any = true;
+            }
+        }
+
+        if ($restored_any) {
+            $cart->calculate_totals();
+        }
     }
 
     public function remove_child_items($removed_key, $cart) {

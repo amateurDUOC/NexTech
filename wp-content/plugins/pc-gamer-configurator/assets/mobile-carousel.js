@@ -1,9 +1,9 @@
 (function () {
-    const isMobile = window.innerWidth <= 768 ||
-        navigator.userAgent.match(/Android/i) ||
-        navigator.userAgent.match(/iPhone|iPad|iPod/i);
+    // Detección de móvil mejorada
+    const isMobile = () => window.innerWidth <= 768 ||
+        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    if (!isMobile) return;
+    if (!isMobile()) return;
 
     document.addEventListener('DOMContentLoaded', function () {
         setTimeout(initMobileCarousels, 300);
@@ -35,31 +35,29 @@
 
         cleanupCarousel(track, prevBtn, nextBtn);
 
-        // 📱 Obtener ancho real del item desde CSS, no hardcodeado
+        // Obtener ancho real del item desde CSS
         const firstItem = track.querySelector('.upgrade-item');
         let itemWidth = firstItem ? firstItem.getBoundingClientRect().width : 150;
-        
-        // Fallback si algo falla
+
         if (!itemWidth || itemWidth === 0) {
             itemWidth = 150;
         }
 
-        // 🔁 Eliminar cualquier dummy previamente agregado
+        // Eliminar cualquier dummy previamente agregado
         track.querySelectorAll('.upgrade-item.dummy').forEach(d => d.remove());
 
-        // 👉 Añadir dummy si hay más de 1 producto
+        // Añadir dummy si hay más de 1 producto
         if (isMobile && items.length > 1) {
             const dummy = document.createElement('div');
             dummy.className = 'upgrade-item dummy';
-            // El ancho del dummy se obtiene del CSS automáticamente
             dummy.style.visibility = 'hidden';
             dummy.style.pointerEvents = 'none';
             track.appendChild(dummy);
         }
 
         items = track.querySelectorAll('.upgrade-item');
-        
-        // 📏 Recalcular itemWidth después de que el DOM esté actualizado
+
+        // Recalcular itemWidth después de que el DOM esté actualizado
         const actualFirstItem = track.querySelector('.upgrade-item');
         if (actualFirstItem) {
             itemWidth = actualFirstItem.getBoundingClientRect().width;
@@ -67,41 +65,25 @@
 
         items.forEach(item => {
             item.classList.add('mobile-optimized');
-            // ✂️ REMOVIDO: Los estilos ahora vienen del CSS
-            // item.style.width = ...
-            // item.style.padding = ...
-            // Etc.
-
-            const img = item.querySelector('img');
-            if (img) {
-                // ✂️ REMOVIDO: Los estilos de img también están en CSS
-            }
-
-            const title = item.querySelector('p strong');
-            if (title) {
-                // ✂️ REMOVIDO: Los estilos están en CSS
-            }
-
-            const description = item.querySelector('p');
-            if (description) {
-                // ✂️ REMOVIDO: Los estilos están en CSS
-            }
-
-            const button = item.querySelector('.select-button');
-            if (button) {
-                // ✂️ REMOVIDO: Los estilos están en CSS
-            }
         });
 
         const totalItems = items.length;
-        track.style.width = `${itemWidth * totalItems}px`;
-        track.style.gap = '0px';
+        const actualItemsCount = Array.from(items).filter(item => !item.classList.contains('dummy')).length;
+
+        // CORREGIDO: Leer el gap del CSS computed styles, no forzar 0px
+        const computedGap = parseInt(window.getComputedStyle(track).gap) || 16;
+
+        // CORREGIDO: Calcular ancho considerando gaps: (itemWidth * totalItems) + (gaps entre items)
+        const totalGapWidth = computedGap * (totalItems - 1);
+        track.style.width = `${(itemWidth * totalItems) + totalGapWidth}px`;
+        // NO SOBRESCRIBIR EL GAP: track.style.gap = '0px'; ← REMOVIDO
 
         let currentIndex = 0;
         track._initialized = true;
         track._currentIndex = currentIndex;
         track._totalItems = totalItems;
         track._itemWidth = itemWidth;
+        track._computedGap = computedGap;
 
         updateButtonVisibility();
 
@@ -128,7 +110,7 @@
         function handleNextClick(e) {
             e.preventDefault();
             e.stopPropagation();
-            const visibleItemsCount = Math.floor(container.clientWidth / itemWidth);
+            const visibleItemsCount = Math.floor(container.clientWidth / (itemWidth + computedGap));
             if (currentIndex < totalItems - visibleItemsCount) {
                 currentIndex++;
                 updateCarouselPosition();
@@ -137,27 +119,28 @@
         }
 
         function updateCarouselPosition() {
-            const maxTranslate = (itemWidth * totalItems) - container.clientWidth;
-            const desiredTranslate = currentIndex * itemWidth;
+            const maxTranslate = ((itemWidth + computedGap) * totalItems) - container.clientWidth;
+            const desiredTranslate = (itemWidth + computedGap) * currentIndex;
             track.style.transform = `translateX(-${Math.min(desiredTranslate, maxTranslate)}px)`;
             track._currentIndex = currentIndex;
         }
 
         function updateButtonVisibility() {
-            const visibleItemsCount = Math.floor(container.clientWidth / itemWidth);
-            if (totalItems > visibleItemsCount) {
+            const itemsToCount = Array.from(items).filter(item => !item.classList.contains('dummy')).length;
+            const visibleItemsCount = Math.floor(container.clientWidth / (itemWidth + computedGap));
+            if (itemsToCount > visibleItemsCount) {
                 if (prevBtn) prevBtn.style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
-                if (nextBtn) nextBtn.style.visibility = currentIndex < (totalItems - visibleItemsCount) ? 'visible' : 'hidden';
+                if (nextBtn) nextBtn.style.visibility = currentIndex < (itemsToCount - visibleItemsCount) ? 'visible' : 'hidden';
             } else {
                 if (prevBtn) prevBtn.style.visibility = 'hidden';
                 if (nextBtn) nextBtn.style.visibility = 'hidden';
             }
         }
 
-        setupTouchSwipe(track, itemWidth, totalItems);
+        setupTouchSwipe(track, itemWidth, computedGap, totalItems, container, actualItemsCount);
     }
 
-    function setupTouchSwipe(track, itemWidth, totalItems) {
+    function setupTouchSwipe(track, itemWidth, computedGap, totalItems, container, actualItemsCount = totalItems) {
         let startX, startY;
         let isDragging = false;
         let currentTranslate = 0;
@@ -224,7 +207,8 @@
 
             const touchEndX = e.changedTouches[0].clientX;
             const diffX = touchEndX - startX;
-            const threshold = itemWidth * 0.2;
+            const itemWithGap = itemWidth + computedGap;
+            const threshold = itemWithGap * 0.2;
 
             if (Math.abs(diffX) > threshold) {
                 if (diffX > 0 && currentIndex > 0) {
@@ -234,19 +218,16 @@
                 }
             }
 
-            const maxTranslate = (itemWidth * totalItems) - track.closest('.pcgamer-carousel-container').clientWidth;
-            const desiredTranslate = currentIndex * itemWidth;
+            const maxTranslate = (itemWithGap * totalItems) - container.clientWidth;
+            const desiredTranslate = itemWithGap * currentIndex;
             track.style.transform = `translateX(-${Math.min(desiredTranslate, maxTranslate)}px)`;
             track._currentIndex = currentIndex;
 
-            const container = track.closest('.pcgamer-carousel-container');
-            if (container) {
-                const prevBtn = container.querySelector('.prev');
-                const nextBtn = container.querySelector('.next');
-                const visibleItems = Math.floor(container.clientWidth / itemWidth);
-                if (prevBtn) prevBtn.style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
-                if (nextBtn) nextBtn.style.visibility = currentIndex < (totalItems - visibleItems) ? 'visible' : 'hidden';
-            }
+            const prevBtn = container.querySelector('.prev');
+            const nextBtn = container.querySelector('.next');
+            const visibleItems = Math.floor(container.clientWidth / itemWithGap);
+            if (prevBtn) prevBtn.style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+            if (nextBtn) nextBtn.style.visibility = currentIndex < (actualItemsCount - visibleItems) ? 'visible' : 'hidden';
         }
     }
 
