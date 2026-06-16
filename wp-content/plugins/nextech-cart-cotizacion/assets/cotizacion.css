@@ -1,5 +1,14 @@
 /* ── Nextech Cart Cotización — Estilos ─────────────────────────────────────── */
 
+/* ── Tamaño de imagen en tabla del carrito ───────────────────────────────────*/
+.woocommerce-cart-form .product-thumbnail img,
+.woocommerce table.shop_table .product-thumbnail img {
+    width: 100px !important;
+    height: 100px !important;
+    object-fit: contain;
+}
+
+
 /* ── Botón exportar en acciones del carrito ──────────────────────────────────*/
 .ncc-btn-export {
     display: inline-flex !important;

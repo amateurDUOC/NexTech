@@ -66,6 +66,13 @@ class PCGamerConfigurator {
         add_action('woocommerce_product_meta_end', [ $this, 'render_product_info_section' ]);
         // Quitar líneas redundantes de la descripción corta en productos del configurador
         add_filter('woocommerce_short_description', [ $this, 'clean_short_description' ], 20);
+
+        // Sincronización automática de precios: cuando cambia el precio de un componente en WC,
+        // se propaga automáticamente a todos los PC base que lo usen.
+        add_action('woocommerce_product_object_updated_props', [ $this, 'auto_sync_price_on_update' ], 10, 2);
+
+        // Mantener la tabla nextech_component_specs actualizada al guardar compatibilidad
+        add_action('woocommerce_update_product', [ $this, 'sync_component_specs_table' ], 20 );
     }
 
     public function enqueue_styles() {
@@ -1288,6 +1295,93 @@ class PCGamerConfigurator {
     private function has_upgrades($product) {
         $upgrades = get_post_meta($product->get_id(), '_pcgamer_upgrades', true);
         return is_array($upgrades) && count($upgrades) > 0;
+    }
+
+    /**
+     * Cuando WooCommerce guarda un precio nuevo en un componente, lo propaga
+     * automáticamente a todos los PC base que lo incluyan como upgrade.
+     */
+    public function auto_sync_price_on_update( $product, $updated_props ) {
+        $price_props = [ 'price', 'sale_price', 'regular_price' ];
+        if ( empty( array_intersect( $price_props, $updated_props ) ) ) {
+            return;
+        }
+
+        $product_id = $product->get_id();
+        $new_price  = $product->get_sale_price();
+        if ( $new_price === '' || $new_price === false ) {
+            $new_price = $product->get_regular_price();
+        }
+        if ( $new_price === '' ) {
+            return;
+        }
+
+        $pc_bases = get_posts( [
+            'post_type'      => 'product',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'meta_query'     => [ [ 'key' => '_pcgamer_enabled', 'value' => 'yes' ] ],
+            'fields'         => 'ids',
+        ] );
+
+        $synced = 0;
+        foreach ( $pc_bases as $pc_id ) {
+            $upgrades = get_post_meta( $pc_id, '_pcgamer_upgrades', true );
+            if ( ! is_array( $upgrades ) ) continue;
+
+            $found = false;
+            foreach ( $upgrades as $ids ) {
+                if ( in_array( $product_id, (array) $ids, true ) ) { $found = true; break; }
+            }
+            if ( ! $found ) continue;
+
+            $custom_prices = get_post_meta( $pc_id, '_pcgamer_custom_prices', true ) ?: [];
+            $custom_prices[ $product_id ] = (float) $new_price;
+            update_post_meta( $pc_id, '_pcgamer_custom_prices', $custom_prices );
+            $synced++;
+        }
+
+        // Actualizar también pcgamer_sync_custom_prices global
+        $global_prices = get_option( 'pcgamer_sync_custom_prices', [] );
+        $global_prices[ $product_id ] = (float) $new_price;
+        update_option( 'pcgamer_sync_custom_prices', $global_prices );
+    }
+
+    /**
+     * Mantiene wp_nextech_component_specs sincronizada cuando se guarda un producto.
+     */
+    public function sync_component_specs_table( $product_id ) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'nextech_component_specs';
+
+        // Verificar que la tabla existe antes de escribir
+        if ( $wpdb->get_var( "SHOW TABLES LIKE '$table'" ) !== $table ) {
+            return;
+        }
+
+        $fields = [
+            '_pcgamer_socket'            => 'socket',
+            '_pcgamer_ram_type'          => 'ram_type',
+            '_pcgamer_form_factor'       => 'form_factor',
+            '_pcgamer_wattage'           => 'wattage',
+            '_pcgamer_cooler_height'     => 'cooler_height',
+            '_pcgamer_cooler_clearance'  => 'cooler_clearance',
+            '_pcgamer_radiator_size'     => 'radiator_size',
+        ];
+
+        $has_any = false;
+        $data    = [ 'product_id' => $product_id, 'category_slug' => 'componente' ];
+        foreach ( $fields as $meta_key => $col ) {
+            $val = get_post_meta( $product_id, $meta_key, true );
+            if ( $val !== '' && $val !== false ) {
+                $data[ $col ] = $val;
+                $has_any = true;
+            }
+        }
+
+        if ( ! $has_any ) return;
+
+        $wpdb->replace( $table, $data );
     }
 }
 
