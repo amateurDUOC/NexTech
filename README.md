@@ -44,5 +44,5 @@ NexTech es una tienda de e-commerce para venta de equipos y componentes tecnoló
 
 ## Tablero Kanban
 
-[Ver tablero Kanban](https://caica-ortega-prado.atlassian.net/jira/software/projects/SCRUM/boards/1)
+https://caica-ortega-prado.atlassian.net/jira/software/projects/SCRUM/list?jql=project%20%3D%20SCRUM%20ORDER%20BY%20created%20ASC
 
