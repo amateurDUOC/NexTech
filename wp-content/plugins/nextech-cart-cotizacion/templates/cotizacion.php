@@ -8,7 +8,7 @@
 
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 12px;
+    font-size: 15px;
     color: #1a1a1a;
     background: #fff;
     padding: 30px;
@@ -33,8 +33,8 @@
   }
 
   .header-logo img {
-    width: 90px;
-    height: 90px;
+    width: 150px;
+    height: 150px;
     object-fit: contain;
     display: block;
   }
@@ -65,23 +65,25 @@
 
   /* ── Caja cotización ────────────────────────────────────────────────────── */
   .header-doc {
-    border: 2px solid #1565c0;
+    border: 1.5px solid #1565c0;
     border-radius: 4px;
     overflow: hidden;
     text-align: center;
-    min-width: 180px;
+    min-width: 160px;
+    flex-shrink: 0;
   }
 
   .header-doc-title {
-    padding: 8px 20px;
-    font-size: 16px;
+    padding: 7px 18px 2px;
+    font-size: 13px;
     font-weight: 800;
     color: #1565c0;
+    letter-spacing: 0.5px;
   }
 
   .header-doc-numero {
-    padding: 4px 20px 8px;
-    font-size: 16px;
+    padding: 0 18px 7px;
+    font-size: 15px;
     font-weight: 800;
     color: #1565c0;
   }
@@ -89,22 +91,23 @@
   .header-doc-badge {
     background: #b71c1c;
     color: #fff;
-    padding: 5px 16px;
-    font-size: 10px;
+    padding: 5px 14px;
+    font-size: 9.5px;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
     text-transform: uppercase;
+    line-height: 1.4;
   }
 
   .header-doc-fecha {
-    padding: 6px 16px;
-    font-size: 11px;
+    padding: 6px 14px;
+    font-size: 10.5px;
     color: #444;
   }
 
   /* ── Sección títulos ────────────────────────────────────────────────────── */
   .seccion-titulo {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: #1565c0;
     border-bottom: 2px solid #1565c0;
@@ -119,6 +122,9 @@
     border-collapse: collapse;
     margin-bottom: 4px;
     font-size: 11.5px;
+    border: 1px solid #e8e8e8;
+    background: #f7f9ff;
+   
   }
 
   .receptor-tabla td {
@@ -148,6 +154,7 @@
     border-collapse: collapse;
     margin-bottom: 20px;
     font-size: 12px;
+    border: 1px solid #e8e8e8;
   }
 
   .detalle-tabla thead tr {
@@ -179,39 +186,53 @@
   /* ── Footer ─────────────────────────────────────────────────────────────── */
   .footer-grid {
     display: flex;
-    gap: 16px;
-    margin-top: 8px;
+    gap: 14px;
+    margin-top: 4px;
     align-items: flex-start;
   }
 
+  /* Términos — borde izquierdo azul sutil */
   .footer-terminos {
     flex: 1;
-    padding: 14px;
+    border-left: 3px solid #1565c0;
+    padding: 10px 14px;
+    background: #f7f9ff;
+    border-radius: 0 4px 4px 0;
   }
 
   .footer-terminos h4 {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     color: #1565c0;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
   }
 
   .footer-terminos ul {
-    list-style: disc;
-    padding-left: 16px;
+    list-style: none;
+    padding: 0;
   }
 
   .footer-terminos ul li {
-    font-size: 10.5px;
+    font-size: 10px;
     color: #444;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     line-height: 1.5;
+    padding-left: 12px;
+    position: relative;
   }
 
+  .footer-terminos ul li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #1565c0;
+  }
+
+  /* Resumen totales */
   .footer-resumen {
-    min-width: 220px;
+    min-width: 230px;
     border: 1px solid #ddd;
     border-radius: 4px;
     overflow: hidden;
@@ -220,7 +241,7 @@
   .resumen-tabla {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .resumen-tabla td {
@@ -234,8 +255,8 @@
   .resumen-tabla tr.total td {
     font-weight: 800;
     font-size: 13px;
-    color: #1a1a1a;
-    background: #f0f0f0;
+    color: #1565c0;
+    background: #f7f9ff;
     border-bottom: none;
   }
 
@@ -321,8 +342,8 @@
     <thead>
       <tr>
         <th>DESCRIPCIÓN</th>
-        <th class="right" style="width:60px">CANT.</th>
-        <th class="right" style="width:110px">P. UNIT.</th>
+        <th class="right" style="width:60px">CANTIDAD</th>
+        <th class="right" style="width:110px">PRECIO</th>
         <th class="right" style="width:110px">TOTAL</th>
       </tr>
     </thead>
@@ -374,9 +395,60 @@
   <!-- Pie -->
   <div class="pie-pagina">Página 1</div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    window.addEventListener('load', function() {
-      setTimeout(function() { window.print(); }, 400);
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+
+        var titulo = document.title.replace(/[^a-zA-Z0-9_\-]/g, '_');
+
+        html2canvas(document.body, {
+          scale: 2,          // alta resolución
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        }).then(function (canvas) {
+
+          var imgData  = canvas.toDataURL('image/jpeg', 0.95);
+          var pdf      = new jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+          var pageW    = pdf.internal.pageSize.getWidth();
+          var pageH    = pdf.internal.pageSize.getHeight();
+
+          // Calcular altura proporcional al ancho A4
+          var imgW     = canvas.width;
+          var imgH     = canvas.height;
+          var ratio    = pageW / imgW;
+          var rendered = imgH * ratio;   // altura en mm al escalar al ancho A4
+
+          if (rendered <= pageH) {
+            // Cabe en una sola página
+            pdf.addImage(imgData, 'JPEG', 0, 0, pageW, rendered);
+          } else {
+            // Múltiples páginas: recortar canvas por tramos
+            var mmPerPx  = ratio;
+            var pxPerPage = Math.floor(pageH / mmPerPx);
+            var pages     = Math.ceil(imgH / pxPerPage);
+
+            for (var p = 0; p < pages; p++) {
+              if (p > 0) pdf.addPage();
+              var srcY   = p * pxPerPage;
+              var srcH   = Math.min(pxPerPage, imgH - srcY);
+
+              var slice  = document.createElement('canvas');
+              slice.width  = imgW;
+              slice.height = srcH;
+              slice.getContext('2d').drawImage(canvas, 0, srcY, imgW, srcH, 0, 0, imgW, srcH);
+
+              var sliceData = slice.toDataURL('image/jpeg', 0.95);
+              pdf.addImage(sliceData, 'JPEG', 0, 0, pageW, srcH * mmPerPx);
+            }
+          }
+
+          pdf.save(titulo + '.pdf');
+        });
+
+      }, 400);
     });
   </script>
 
