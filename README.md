@@ -35,12 +35,12 @@ NexTech es una tienda de e-commerce para venta de equipos y componentes tecnoló
 
 ## Estructura del equipo
 
-| Nombre                        | Rol                     |
-|-------------------------------|-------------------------|
-| Alex Eduardo Caica Zamora     | Scrum Master / Dev Team |
-| Renato Alejandro Ortega Ramos | Dev Team / Fullstack    |
-| Angel Orlando Prado Correa    | Dev Team / Fullstack    |
-| Manuel Reyes Bustos           | Product Owner           |
+| Nombre | Rol |
+|---|---|
+| Alex Caica Zamora | Scrum Master / Development Team |
+| Renato Ortega Ramos | Development Team |
+| Ángel Prado Correa | Development Team |
+| Manuel Reyes Bustos | Product Owner |
 
 ## Tablero Kanban
 
