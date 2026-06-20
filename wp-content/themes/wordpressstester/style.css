@@ -759,7 +759,7 @@ body.tax-product_cat .widget_layered_nav_filters {
 }
 
 /* Responsive: columnas apiladas en pantallas pequeñas */
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
     .nxt-cart-layout {
         flex-direction: column;
     }
