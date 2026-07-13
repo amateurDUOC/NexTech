@@ -1,0 +1,153 @@
+/* ── Nextech — Footer styles ────────────────────────────────────────────── */
+
+/* ── Ícono estrella de calificaciones ───────────────────────────────────── */
+
+.nextech-star-review {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-left: 6px;
+    opacity: 0.85;
+    transition: opacity 0.2s, transform 0.18s;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+.nextech-star-review:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+.nextech-star-review svg {
+    display: block;
+}
+
+/* ── Botón toggle compartido ─────────────────────────────────────────────── */
+
+.nextech-footer-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.30);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    white-space: nowrap;
+}
+
+.nextech-footer-toggle:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.55);
+}
+
+.nextech-footer-toggle::after {
+    content: '▸';
+    font-size: 0.95rem;
+    transition: transform 0.25s ease;
+    display: inline-block;
+}
+
+.nextech-footer-toggle.open::after {
+    transform: rotate(90deg);
+}
+
+/* ── Contenedor del widget ───────────────────────────────────────────────── */
+
+.nextech-panel-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+/* ── Panel flotante a la derecha del botón ───────────────────────────────── */
+
+.nextech-panel-body {
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-10px);
+    width: 270px;
+    background: #1e1e1e;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 14px 16px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 1000;
+    text-align: left;
+}
+
+.nextech-panel-body::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 7px solid transparent;
+    border-right-color: rgba(255,255,255,0.15);
+}
+
+.nextech-panel-body::after {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: #1e1e1e;
+}
+
+.nextech-panel-body.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) translateX(0);
+}
+
+.nextech-panel-body p {
+    margin: 0 0 8px;
+    line-height: 1.65;
+    font-size: 0.88rem;
+    color: #ddd;
+}
+
+.nextech-panel-body p:last-child { margin-bottom: 0; }
+
+/* ── Móvil: panel cae hacia abajo ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .nextech-panel-body {
+        position: static !important;
+        width: 100% !important;
+        transform: none !important;
+        display: none;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        margin-top: 10px;
+        box-shadow: none;
+    }
+
+    .nextech-panel-body.open { display: block !important; }
+
+    .nextech-panel-body::before,
+    .nextech-panel-body::after { display: none !important; }
+}
+
+/* ── Ocultar "Regístrate" para usuarios logueados ────────────────────────── */
+
+.logged-in .header-button[href*="register"],
+.logged-in .header-button[href*="registro"],
+.logged-in a.button[href*="register"],
+.logged-in a.button[href*="registro"],
+.logged-in .nav-button[href*="register"],
+.logged-in .nav-button[href*="registro"] {
+    display: none !important;
+}

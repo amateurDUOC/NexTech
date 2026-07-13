@@ -177,6 +177,7 @@ function nextech_filter_enqueue_assets(): void {
         'nonce'           => wp_create_nonce( 'wp_rest' ),
         'perPage'         => 24,
         'categoriaActual' => $categoria_actual,
+        'isShop'          => is_shop(),
         'i18n'            => [
             'sin_resultados' => __( 'No se encontraron productos con esos filtros.', 'nextech-filter' ),
             'error'          => __( 'Error al cargar productos. Intenta de nuevo.', 'nextech-filter' ),

@@ -4,13 +4,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const summaryTotal = document.getElementById('pcgamer-summary-total');
     const basePrice = parseFloat(document.getElementById('pcgamer-total-price').dataset.basePrice || 0);
 
-    // ✅ Solución Android/Responsive para tabla cortada
-    const summaryContainer = document.getElementById('pcgamer-summary-table-container');
-    if (summaryContainer && summaryTable && window.innerWidth <= 416) {
-        summaryContainer.style.overflowX = 'auto';
-        summaryContainer.style.webkitOverflowScrolling = 'touch';
-        summaryTable.style.minWidth = '430px';
-        summaryTable.style.width = 'max-content';
+    // ── Toggle dropdown del resumen ───────────────────────────────────────
+    const summaryToggle   = document.getElementById('pcgamer-summary-toggle');
+    const summaryDropdown = document.getElementById('pcgamer-summary-table-container');
+    if (summaryToggle && summaryDropdown) {
+        summaryToggle.addEventListener('click', function () {
+            const isOpen = summaryDropdown.classList.toggle('active');
+            summaryToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
     }
 
     if (!checkboxes.length || !summaryTable || !summaryTotal) return;

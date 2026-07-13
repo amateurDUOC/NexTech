@@ -1,0 +1,193 @@
+/* ── PC Gamer Configurator — Admin Styles ────────────────────────────────── */
+
+.pcgamer-admin-container {
+    max-width: 1100px;
+    margin: 40px auto 40px auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.pcgamer-admin-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1.5px 4px rgba(0,0,0,0.03);
+    padding: 36px 32px 32px 32px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+.pcgamer-admin-card h1 {
+    font-size: 2rem;
+    margin-bottom: 18px;
+    color: #222;
+    font-weight: 700;
+}
+
+.pcgamer-admin-card h2 {
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #4a90e2;
+    font-weight: 600;
+}
+
+.pcgamer-admin-card table.form-table {
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    padding: 0;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.pcgamer-admin-card table.form-table th,
+.pcgamer-admin-card table.form-table td {
+    padding: 18px 12px 18px 0;
+    vertical-align: top;
+}
+
+.pcgamer-admin-card table.form-table th {
+    width: 220px;
+    font-weight: 600;
+    color: #333;
+}
+
+.pcgamer-admin-card table.form-table td {
+    background: #fff;
+    border-radius: 6px;
+}
+
+.pcgamer-admin-card fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pcgamer-admin-card .wp-list-table {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    margin-bottom: 0;
+}
+
+.pcgamer-admin-card .wp-list-table th,
+.pcgamer-admin-card .wp-list-table td {
+    padding: 8px 10px;
+    font-size: 15px;
+}
+
+.pcgamer-admin-card .wp-list-table th {
+    background: #f4f7fa;
+    color: #444;
+    font-weight: 600;
+}
+
+.pcgamer-admin-card .wp-list-table tr:nth-child(even) td {
+    background: #f9f9f9;
+}
+
+.pcgamer-admin-card .wp-list-table tr td input[type="checkbox"] {
+    transform: scale(1.2);
+}
+
+.pcgamer-admin-card .pcgamer-sync-search {
+    margin-bottom: 8px;
+}
+
+.pcgamer-admin-card .button {
+    margin-bottom: 0;
+}
+
+.pcgamer-admin-card .pcgamer-select-all-btn,
+.pcgamer-admin-card .pcgamer-deselect-all-btn {
+    margin-right: 5px;
+}
+
+.pcgamer-admin-card .pcgamer-sort-price {
+    margin-left: 5px;
+}
+
+.pcgamer-admin-card .spinner {
+    vertical-align: middle;
+}
+
+/* ── Toggle switch ───────────────────────────────────────────────────────── */
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #4a90e2;
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.toggle-label {
+    font-size: 14px;
+    color: #333;
+}
+
+.switch input:disabled + .slider {
+    background-color: #e0e0e0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+    .pcgamer-admin-card {
+        padding: 18px 6px 18px 6px;
+    }
+    .pcgamer-admin-card table.form-table th {
+        width: 120px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 600px) {
+    .pcgamer-admin-container {
+        padding: 0 2px;
+    }
+    .pcgamer-admin-card {
+        padding: 8px 2px 8px 2px;
+    }
+    .pcgamer-admin-card table.form-table th,
+    .pcgamer-admin-card table.form-table td {
+        padding: 8px 2px 8px 0;
+        font-size: 13px;
+    }
+}

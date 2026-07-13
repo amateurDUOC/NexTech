@@ -40,7 +40,32 @@ class Nextech_Filter_Widget extends WP_Widget {
                 </div>
             </div>
 
-            <?php /* Marcas y Categorías desactivadas — solo se usa el filtro de precio */ ?>
+            <!-- ── Categorías ────────────────────────────────────────────── -->
+            <div class="nxf-accordion" id="nxf-categorias-section" data-open="true" hidden>
+                <button class="nxf-accordion-header" type="button" aria-expanded="true">
+                    <span>Categorías</span>
+                    <svg class="nxf-chevron" viewBox="0 0 10 6" aria-hidden="true">
+                        <path d="M0 0l5 6 5-6z"/>
+                    </svg>
+                </button>
+                <div class="nxf-accordion-body">
+                    <div id="nxf-categorias-list" class="nxf-term-list"></div>
+                </div>
+            </div>
+
+            <!-- ── Marcas ─────────────────────────────────────────────────── -->
+            <div class="nxf-accordion" id="nxf-marcas-section" data-open="true" hidden>
+                <button class="nxf-accordion-header" type="button" aria-expanded="true">
+                    <span>Marcas</span>
+                    <svg class="nxf-chevron" viewBox="0 0 10 6" aria-hidden="true">
+                        <path d="M0 0l5 6 5-6z"/>
+                    </svg>
+                </button>
+                <div class="nxf-accordion-body">
+                    <input type="search" id="nxf-marcas-search" class="nxf-search-input" placeholder="Buscar marca…" aria-label="Buscar marca" />
+                    <div id="nxf-marcas-list" class="nxf-term-list"></div>
+                </div>
+            </div>
 
             <!-- ── Limpiar filtros ────────────────────────────────────────── -->
             <button id="nxf-reset" class="nxf-reset-btn" type="button" hidden>

@@ -42,40 +42,35 @@ class PriceTotal {
         $enabled = get_post_meta($product->get_id(), '_pcgamer_enabled', true);
         if ($enabled !== 'yes') return;
 
-        echo '<div id="pcgamer-total-container" style="margin: 30px auto 15px; font-weight: 600; font-size: 26px; text-align: center; color: #333;">';
-        echo '💰 Total: <span id="pcgamer-total-price" data-base-price="' . esc_attr($product->get_price()) . '" style="color: #4a90e2; font-weight: 700;">';
+        echo '<div id="pcgamer-total-container">';
+        echo '💰 Total: <span id="pcgamer-total-price" data-base-price="' . esc_attr($product->get_price()) . '">';
         echo wc_price($product->get_price());
         echo '</span>';
         echo '</div>';
-        
-        // Add the enhanced summary table container
-        echo '<div id="pcgamer-summary-table-container" class="pcgamer-summary-section">';
-        echo '<h3>📋 Resumen de Componentes </h3>';
 
-        echo '<div class="pcgamer-summary-table-wrapper">';
+        echo '<div id="pcgamer-summary-table-container" class="pcgamer-summary-dropdown active">';
+        echo '<div class="pcgamer-summary-header" id="pcgamer-summary-toggle" role="button" aria-expanded="true">';
+        echo '<span>📋 Resumen de Componentes</span>';
+        echo '<span class="pcgamer-dropdown-icon">▼</span>';
+        echo '</div>';
+        echo '<div class="pcgamer-summary-content">';
         echo '<table id="pcgamer-summary-table">';
-        echo '<thead>';
-        echo '<tr>';
+        echo '<thead><tr>';
         echo '<th>Categoría</th>';
         echo '<th>Producto Seleccionado</th>';
         echo '<th>Precio</th>';
-        echo '</tr>';
-        echo '</thead>';
+        echo '</tr></thead>';
         echo '<tbody>';
-        // Base product row
         echo '<tr class="base-product-row">';
         echo '<td>🖥️ PC Base</td>';
         echo '<td>' . esc_html($product->get_name()) . '</td>';
         echo '<td>' . wc_price($product->get_price()) . '</td>';
         echo '</tr>';
-        // Dynamic rows will be added by JavaScript
         echo '</tbody>';
-        echo '<tfoot>';
-        echo '<tr>';
+        echo '<tfoot><tr>';
         echo '<th colspan="2">PRECIO TOTAL</th>';
         echo '<th id="pcgamer-summary-total">' . wc_price($product->get_price()) . '</th>';
-        echo '</tr>';
-        echo '</tfoot>';
+        echo '</tr></tfoot>';
         echo '</table>';
         echo '</div>';
         echo '</div>';

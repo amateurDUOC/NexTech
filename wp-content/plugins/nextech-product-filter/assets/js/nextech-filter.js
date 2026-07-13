@@ -3,7 +3,8 @@
     'use strict';
 
     // Categoría de la página actual — viene de PHP, solo lectura
-    const contexto = ( NxtFilter.categoriaActual || '' ).trim();
+    const contexto  = ( NxtFilter.categoriaActual || '' ).trim();
+    const isShop    = !! NxtFilter.isShop;   // true en /tienda (página principal de la tienda)
 
     // ── Estado ────────────────────────────────────────────────────────────────
     const state = {
@@ -139,8 +140,9 @@
             // Así hideSidebarFilters() puede encontrar y ocultar los elementos
             // dinámicos (.nxf-attr-section, .nxf-attr-grupo) si retorna 0 resultados.
             // • contexto activo → reemplaza loop nativo WC con solo productos en stock
+            // • isShop         → reemplaza el loop en /tienda (solo en stock)
             // • filtros activos → aplica selecciones del usuario (URL params)
-            if ( contexto || hasActiveFilters() ) {
+            if ( contexto || isShop || hasActiveFilters() ) {
                 fetchProducts();
             }
 
@@ -568,14 +570,21 @@
         }
 
         g.innerHTML = data.html;
+        restoreSidebarFilters();
         document.dispatchEvent( new CustomEvent( 'nextech_grid_updated', { detail: { data, grid: g } } ) );
     }
 
-    /** Oculta los paneles de filtro (precio + atributos dinámicos) */
+    /** Oculta los paneles de filtro (precio + atributos dinámicos) y colapsa la columna del sidebar */
     function hideSidebarFilters() {
         $( '#nxf-precio-section' )?.setAttribute( 'hidden', '' );
         document.querySelectorAll( '#nextech-filter .nxf-attr-section, #nextech-filter .nxf-attr-grupo' )
             .forEach( el => el.setAttribute( 'hidden', '' ) );
+        $( '.category-page-row' )?.classList.add( 'nxf-no-sidebar' );
+    }
+
+    /** Restaura la columna del sidebar cuando hay productos */
+    function restoreSidebarFilters() {
+        $( '.category-page-row' )?.classList.remove( 'nxf-no-sidebar' );
     }
 
     function renderPagination( data ) {

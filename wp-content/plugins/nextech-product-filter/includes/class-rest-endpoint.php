@@ -234,7 +234,7 @@ class Nextech_Rest_Endpoint {
 
     public static function get_filtros( WP_REST_Request $request ): WP_REST_Response {
         $contexto  = $request->get_param( 'contexto' );
-        $cache_key = 'nxf_filtros_' . ( $contexto ? md5( $contexto ) : 'global' ) . '_v1';
+        $cache_key = 'nxf_filtros_' . ( $contexto ? md5( $contexto ) : 'global' ) . '_v2';
 
         $cached = get_transient( $cache_key );
         if ( $cached !== false ) return rest_ensure_response( $cached );
@@ -311,20 +311,24 @@ class Nextech_Rest_Endpoint {
      */
     private static function build_category_tree( ?WP_Term $ctx_term ): array {
         if ( ! $ctx_term ) {
+            // ── Tienda global: árbol de raíces + sus hijos directos ──────────
             $raices = get_terms( [ 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => 0 ] );
             if ( is_wp_error( $raices ) || empty( $raices ) ) return [];
 
-            // ── Batch: una sola query para todos los hijos en lugar de 1 por raíz
-            $root_ids = array_map( fn( $c ) => $c->term_id, $raices );
+            // Batch: una sola query para todos los hijos
+            $root_ids  = array_map( fn( $c ) => $c->term_id, $raices );
             $all_hijos = get_terms( [ 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent__in' => $root_ids ] );
             $hijos_por_padre = [];
             foreach ( (array) $all_hijos as $hijo ) {
-                $hijos_por_padre[ $hijo->parent ][] = $hijo;
+                if ( (int) $hijo->count > 0 ) {   // ← solo hijos con stock
+                    $hijos_por_padre[ $hijo->parent ][] = $hijo;
+                }
             }
-            // ────────────────────────────────────────────────────────────────
 
             $cat_tree = [];
             foreach ( (array) $raices as $cat ) {
+                if ( (int) $cat->count === 0 ) continue;   // ← omitir raíces sin stock
+
                 $hijos      = $hijos_por_padre[ $cat->term_id ] ?? [];
                 $cat_tree[] = [
                     'id'     => $cat->term_id,
@@ -342,20 +346,25 @@ class Nextech_Rest_Endpoint {
             return $cat_tree;
         }
 
+        // ── Categoría con contexto: subcategorías (drill-down) ───────────────
         $subcats = get_terms( [ 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => $ctx_term->term_id ] );
 
         if ( ! empty( $subcats ) ) {
-            // Tiene hijos → mostrar para drill-down
-            return array_map( fn( $t ) => [
-                'id'     => $t->term_id,
-                'nombre' => $t->name,
-                'slug'   => $t->slug,
-                'count'  => (int) $t->count,
-                'hijos'  => [],
-            ], (array) $subcats );
+            // Filtrar solo subcategorías con productos en stock
+            $subcats = array_filter( (array) $subcats, fn( $t ) => (int) $t->count > 0 );
+            if ( ! empty( $subcats ) ) {
+                return array_map( fn( $t ) => [
+                    'id'     => $t->term_id,
+                    'nombre' => $t->name,
+                    'slug'   => $t->slug,
+                    'count'  => (int) $t->count,
+                    'hijos'  => [],
+                ], $subcats );
+            }
+            // Todas las subcategorías sin stock → caemos a hermanas
         }
 
-        // Categoría hoja → mostrar hermanas para navegación lateral
+        // ── Categoría hoja (o todas las subs vacías): mostrar hermanas ───────
         $siblings = get_terms( [
             'taxonomy'   => 'product_cat',
             'hide_empty' => true,
@@ -363,13 +372,16 @@ class Nextech_Rest_Endpoint {
             'exclude'    => [ $ctx_term->term_id ],
         ] );
 
+        // Solo hermanas con stock para no confundir al usuario
+        $siblings = array_filter( (array) $siblings, fn( $t ) => (int) $t->count > 0 );
+
         return array_map( fn( $t ) => [
             'id'     => $t->term_id,
             'nombre' => $t->name,
             'slug'   => $t->slug,
             'count'  => (int) $t->count,
             'hijos'  => [],
-        ], (array) $siblings );
+        ], $siblings );
     }
 
     /**
